@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Condominium Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-canvas: #12121a;
+            --accent-primary: #ff6b35;
+            --accent-secondary: #00d4aa;
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a9a;
+            --panel-bg: rgba(20, 20, 30, 0.95);
+            --card-bg: #1a1a2e;
+            --card-hover: #252542;
+            --border-glow: rgba(255, 107, 53, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            height: 60px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-glow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: relative;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--card-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-danger {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--panel-bg);
+            overflow-y: auto;
+            padding: 16px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--card-bg);
+            border-radius: 3px;
+        }
+
+        .category {
+            margin-bottom: 20px;
+        }
+
+        .category-header {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .category-header:hover {
+            color: var(--accent-secondary);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .category-header .arrow {
+            transition: transform 0.2s ease;
+            font-size: 10px;
+        }
+
+        .category.collapsed .category-header .arrow {
+            transform: rotate(-90deg);
+        }
+
+        .category.collapsed .items {
+            display: none;
+        }
+
+        .items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding-top: 8px;
+        }
+
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .item-card:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            border-color: var(--border-glow);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .item-card:active {
+            cursor: grabbing;
+        }
+
+        .item-card .icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .item-card .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: var(--bg-canvas);
+        }
+
+        #three-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: none;
+        }
+
+        .status {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .status.success {
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+
+        .status.error {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 20px;
+        }
+
+        .controls-hint span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .controls-hint kbd {
+            background: var(--card-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 10px;
+        }
+
+        .drop-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 3px dashed var(--accent-secondary);
+            border-radius: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .drop-indicator.active {
+            opacity: 0.6;
+            animation: pulse-drop 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-drop {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; }
+        }
+
+        .instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-secondary);
+            pointer-events: none;
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+        }
+
+        .instructions.hidden {
+            opacity: 0;
+        }
+
+        .instructions h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .instructions p {
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            .items {
+                grid-template-columns: 1fr;
+            }
+            .controls-hint {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <div class="logo">Smart Condominium Management System - 3D Condo Unit Visualization</div>
+            <div class="header-controls">
+                <button class="btn" onclick="saveDesign()">Save</button>
+                <button class="btn" onclick="loadDesign()">Load</button>
+                <button class="btn" onclick="resetCamera()">Reset View</button>
+                <button class="btn" onclick="topView()">Top View</button>
+                <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+            </div>
+        </header>
+        
+        <div class="main-container">
+            <aside class="sidebar">
+                <div class="category" data-category="living">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span>Living Room</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="items">
+                        <div class="item-card" draggable="true" data-type="sofa" data-icon="🛋️" data-label="Sofa" data-color="0x8B4513" data-size="2,0.8,1">
+                            <span class="icon">🛋️</span>
+                            <span class="label">Sofa</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="tvstand" data-icon="📺" data-label="TV Stand" data-color="0x2c2c2c" data-size="1.5,0.6,0.4">
+                            <span class="icon">📺</span>
+                            <span class="label">TV Stand</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="coffeetable" data-icon="☕" data-label="Coffee Table" data-color="0x654321" data-size="1,0.4,0.6">
+                            <span class="icon">☕</span>
+                            <span class="label">Coffee Table</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="floorlamp" data-icon="🪔" data-label="Floor Lamp" data-color="0xFFD700" data-size="0.3,1.5,0.3">
+                            <span class="icon">🪔</span>
+                            <span class="label">Floor Lamp</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="bookshelf" data-icon="📚" data-label="Bookshelf" data-color="0x8B4513" data-size="1.2,1.8,0.3">
+                            <span class="icon">📚</span>
+                            <span class="label">Bookshelf</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="rug" data-icon="🟫" data-label="Rug" data-color="0x4a6741" data-size="2.5,0.02,1.8">
+                            <span class="icon">🟫</span>
+                            <span class="label">Rug</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category" data-category="bedroom">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span>Bedroom</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="items">
+                        <div class="item-card" draggable="true" data-type="bed" data-icon="🛏️" data-label="Bed" data-color="0xf5f5dc" data-size="2,0.5,1.8">
+                            <span class="icon">🛏️</span>
+                            <span class="label">Bed</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="nightstand" data-icon="🗄️" data-label="Nightstand" data-color="0x8B4513" data-size="0.5,0.5,0.4">
+                            <span class="icon">🗄️</span>
+                            <span class="label">Nightstand</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="wardrobe" data-icon="🚪" data-label="Wardrobe" data-color="0x654321" data-size="1.5,2,0.6">
+                            <span class="icon">🚪</span>
+                            <span class="label">Wardrobe</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="desk" data-icon="🖥️" data-label="Desk" data-color="0x8B4513" data-size="1.2,0.75,0.6">
+                            <span class="icon">🖥️</span>
+                            <span class="label">Desk</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="chair" data-icon="🪑" data-label="Chair" data-color="0x4a3728" data-size="0.5,0.9,0.5">
+                            <span class="icon">🪑</span>
+                            <span class="label">Chair</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category" data-category="kitchen">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span>Kitchen</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="items">
+                        <div class="item-card" draggable="true" data-type="diningtable" data-icon="🍽️" data-label="Dining Table" data-color="0x8B4513" data-size="1.5,0.75,0.9">
+                            <span class="icon">🍽️</span>
+                            <span class="label">Dining Table</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="stool" data-icon="🪑" data-label="Stool" data-color="0x333333" data-size="0.35,0.6,0.35">
+                            <span class="icon">🪑</span>
+                            <span class="label">Stool</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="refrigerator" data-icon="🧊" data-label="Refrigerator" data-color="0xc0c0c0" data-size="0.8,1.8,0.7">
+                            <span class="icon">🧊</span>
+                            <span class="label">Refrigerator</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category" data-category="bathroom">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span>Bathroom</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="items">
+                        <div class="item-card" draggable="true" data-type="bathtub" data-icon="🛁" data-label="Bathtub" data-color="0xffffff" data-size="1.7,0.6,0.8">
+                            <span class="icon">🛁</span>
+                            <span class="label">Bathtub</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="toilet" data-icon="🚽" data-label="Toilet" data-color="0xffffff" data-size="0.4,0.65,0.6">
+                            <span class="icon">🚽</span>
+                            <span class="label">Toilet</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="sink" data-icon="🚰" data-label="Sink" data-color="0xffffff" data-size="0.6,0.8,0.5">
+                            <span class="icon">🚰</span>
+                            <span class="label">Sink</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="vanity" data-icon="🪞" data-label="Vanity" data-color="0x8B4513" data-size="0.8,0.85,0.5">
+                            <span class="icon">🪞</span>
+                            <span class="label">Vanity</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="category" data-category="decor">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span>Decor</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="items">
+                        <div class="item-card" draggable="true" data-type="plant" data-icon="🪴" data-label="Plant" data-color="0x228B22" data-size="0.4,0.8,0.4">
+                            <span class="icon">🪴</span>
+                            <span class="label">Plant</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="wallart" data-icon="🖼️" data-label="Wall Art" data-color="0xDAA520" data-size="0.8,0.6,0.05">
+                            <span class="icon">🖼️</span>
+                            <span class="label">Wall Art</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="mirror" data-icon="🪞" data-label="Mirror" data-color="0xc0c0c0" data-size="0.6,1.2,0.05">
+                            <span class="icon">🪞</span>
+                            <span class="label">Mirror</span>
+                        </div>
+                        <div class="item-card" draggable="true" data-type="clock" data-icon="🕐" data-label="Clock" data-color="0x2c2c2c" data-size="0.3,0.3,0.05">
+                            <span class="icon">🕐</span>
+                            <span class="label">Clock</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <main class="canvas-container">
+                <canvas id="three-canvas"></canvas>
+                <div class="canvas-overlay">3D Floor Plan</div>
+                <div class="status" id="status"></div>
+                <div class="drop-indicator" id="dropIndicator"></div>
+                <div class="instructions" id="instructions">
+                    <h3>Drag furniture to add</h3>
+                    <p>Click to select, drag to move, R to rotate</p>
+                </div>
+                <div class="controls-hint">
+                    <span><kbd>Click</kbd> Select</span>
+                    <span><kbd>Drag</kbd> Move</span>
+                    <span><kbd>R</kbd> Rotate</span>
+                    <span><kbd>Delete</kbd> Remove</span>
+                    <span><kbd>Scroll</kbd> Zoom</span>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, raycaster, mouse;
+        let placedObjects = [];
+        let selectedObject = null;
+        let isDragging = false;
+        let dragPlane, dragOffset;
+        let itemIdCounter = 0;
+        let gridHelper;
+
+        const GRID_SIZE = 10;
+        const GRID_DIVISIONS = 20;
+
+        function init() {
+            const container = document.querySelector('.canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x12121a);
+
+            camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+            camera.position.set(15, 15, 15);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('three-canvas'),
+                antialias: true 
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+
+            const fillLight = new THREE.DirectionalLight(0x00d4aa, 0.3);
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+
+            gridHelper = new THREE.GridHelper(GRID_SIZE * GRID_DIVISIONS, GRID_DIVISIONS, 0x333344, 0x222233);
+            scene.add(gridHelper);
+
+            const floorGeometry = new THREE.PlaneGeometry(GRID_SIZE * GRID_DIVISIONS, GRID_SIZE * GRID_DIVISIONS);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a2a,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.01;
+            floor.receiveShadow = true;
+            floor.name = 'floor';
+            scene.add(floor);
+
+            createCondoBackground();
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            dragOffset = new THREE.Vector3();
+
+            setupEventListeners();
+            setupDragAndDrop();
+            animate();
+        }
+
+        function createCondoBackground() {
+            const textureLoader = new THREE.TextureLoader();
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#2a2a3a');
+            gradient.addColorStop(0.4, '#3a3a4a');
+            gradient.addColorStop(0.6, '#4a4a5a');
+            gradient.addColorStop(1, '#2a2a3a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#1a1a2a';
+            for(let i = 0; i < 8; i++) {
+                const x = 50 + i * 120;
+                const y = 150;
+                const w = 80;
+                const h = 200 + Math.random() * 100;
+                ctx.fillRect(x, y, w, h);
+                
+                ctx.fillStyle = '#00d4aa';
+                for(let j = 0; j < 4; j++) {
+                    for(let k = 0; k < 6; k++) {
+                        ctx.fillRect(x + 8 + j * 18, y + 20 + k * 30, 10, 15);
+                    }
+                }
+                ctx.fillStyle = '#1a1a2a';
+            }
+            
+            ctx.fillStyle = '#ff6b35';
+            ctx.font = 'bold 24px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SAMPLE CONDOMINIUM', canvas.width / 2, 80);
+            
+            ctx.font = '16px Outfit, sans-serif';
+            ctx.fillStyle = '#8a8a9a';
+            ctx.fillText('Drag furniture to design your condo', canvas.width / 2, 450);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+
+            const bgGeometry = new THREE.PlaneGeometry(80, 40);
+            const bgMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.DoubleSide
+            });
+            const background = new THREE.Mesh(bgGeometry, bgMaterial);
+            background.position.set(0, 15, -25);
+            background.name = 'background';
+            scene.add(background);
+        }
+
+        function setupEventListeners() {
+            const canvas = renderer.domElement;
+            
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            
+            window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function setupDragAndDrop() {
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+
+            const container = document.querySelector('.canvas-container');
+            container.addEventListener('dragover', handleDragOver);
+            container.addEventListener('drop', handleDrop);
+        }
+
+        function handleDragStart(e) {
+            const data = {
+                type: e.target.dataset.type,
+                icon: e.target.dataset.icon,
+                label: e.target.dataset.label,
+                color: parseInt(e.target.dataset.color),
+                size: e.target.dataset.size.split(',').map(Number)
+            };
+            e.dataTransfer.setData('text/plain', JSON.stringify(data));
+            document.getElementById('dropIndicator').classList.add('active');
+            document.getElementById('instructions').classList.add('hidden');
+        }
+
+        function handleDragEnd(e) {
+            document.getElementById('dropIndicator').classList.remove('active');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('dropIndicator').classList.remove('active');
+
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                
+                const container = document.querySelector('.canvas-container');
+                const rect = container.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                mouse.set(x, y);
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersects = raycaster.intersectObject(scene.getObjectByName('floor'));
+                
+                if (intersects.length > 0) {
+                    const point = intersects[0].point;
+                    create3DObject(data, point.x, point.z);
+                }
+            } catch (err) {
+                console.error('Drop error:', err);
+            }
+        }
+
+        function create3DObject(data, x, z) {
+            const [width, height, depth] = data.size;
+            
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: data.color,
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, height / 2, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
+            mesh.userData = {
+                id: 'item-' + (++itemIdCounter),
+                type: data.type,
+                label: data.label,
+                icon: data.icon,
+                color: data.color,
+                size: data.size
+            };
+            
+            scene.add(mesh);
+            placedObjects.push(mesh);
+            
+            selectObject(mesh);
+        }
+
+        function onMouseDown(e) {
+            const container = document.querySelector('.canvas-container');
+            const rect = container.getBoundingClientRect();
+            
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(placedObjects);
+            
+            if (intersects.length > 0) {
+                selectObject(intersects[0].object);
+                isDragging = true;
+                
+                const intersectPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+                dragOffset.subVectors(selectedObject.position, intersectPoint);
+            } else {
+                deselectObject();
+            }
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging || !selectedObject) return;
+
+            const container = document.querySelector('.canvas-container');
+            const rect = container.getBoundingClientRect();
+            
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+            
+            const newPos = intersectPoint.add(dragOffset);
+            
+            const halfSize = selectedObject.userData.size[0] / 2;
+            const limit = (GRID_SIZE * GRID_DIVISIONS) / 2 - halfSize;
+            newPos.x = Math.max(-limit, Math.min(limit, newPos.x));
+            newPos.z = Math.max(-limit, Math.min(limit, newPos.z));
+            
+            newPos.x = Math.round(newPos.x / GRID_SIZE) * GRID_SIZE;
+            newPos.z = Math.round(newPos.z / GRID_SIZE) * GRID_SIZE;
+            
+            selectedObject.position.x = newPos.x;
+            selectedObject.position.z = newPos.z;
+        }
+
+        function onMouseUp(e) {
+            isDragging = false;
+        }
+
+        function onWheel(e) {
+            e.preventDefault();
+            
+            const zoomSpeed = 0.001;
+            const distance = camera.position.length();
+            const newDistance = distance * (1 + e.deltaY * zoomSpeed);
+            
+            if (newDistance > 5 && newDistance < 100) {
+                camera.position.normalize().multiplyScalar(newDistance);
+            }
+        }
+
+        function onKeyDown(e) {
+            if (!selectedObject) return;
+            
+            if (e.key === 'r' || e.key === 'R') {
+                selectedObject.rotation.y += Math.PI / 4;
+            }
+            
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                deleteSelected();
+            }
+        }
+
+        function onWindowResize() {
+            const container = document.querySelector('.canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function selectObject(obj) {
+            deselectObject();
+            
+            selectedObject = obj;
+            
+            const edges = new THREE.EdgesGeometry(obj.geometry);
+            const line = new THREE.LineSegments(
+                edges,
+                new THREE.LineBasicMaterial({ color: 0x00d4aa, linewidth: 2 })
+            );
+            line.name = 'selectionOutline';
+            obj.add(line);
+            
+            obj.material.emissive = new THREE.Color(0x00d4aa);
+            obj.material.emissiveIntensity = 0.15;
+        }
+
+        function deselectObject() {
+            if (selectedObject) {
+                const outline = selectedObject.getObjectByName('selectionOutline');
+                if (outline) {
+                    selectedObject.remove(outline);
+                }
+                
+                selectedObject.material.emissive = new THREE.Color(0x000000);
+                selectedObject.material.emissiveIntensity = 0;
+                
+                selectedObject = null;
+            }
+        }
+
+        function deleteSelected() {
+            if (!selectedObject) return;
+            
+            scene.remove(selectedObject);
+            placedObjects = placedObjects.filter(obj => obj !== selectedObject);
+            
+            selectedObject.geometry.dispose();
+            selectedObject.material.dispose();
+            
+            selectedObject = null;
+        }
+
+        function clearAll() {
+            if (placedObjects.length === 0) return;
+            
+            if (confirm('Clear all furniture from the scene?')) {
+                placedObjects.forEach(obj => {
+                    scene.remove(obj);
+                    obj.geometry.dispose();
+                    obj.material.dispose();
+                });
+                placedObjects = [];
+                selectedObject = null;
+                document.getElementById('instructions').classList.remove('hidden');
+            }
+        }
+
+        function saveDesign() {
+            const saveData = placedObjects.map(obj => ({
+                type: obj.userData.type,
+                label: obj.userData.label,
+                icon: obj.userData.icon,
+                color: obj.userData.color,
+                size: obj.userData.size,
+                position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
+                rotation: { y: obj.rotation.y }
+            }));
+            
+            const json = JSON.stringify(saveData);
+            localStorage.setItem('condoDesignerSave', json);
+            
+            showStatus('Design saved!', 'success');
+        }
+
+        function loadDesign() {
+            const saved = localStorage.getItem('condoDesignerSave');
+            if (!saved) {
+                showStatus('No saved design found', 'error');
+                return;
+            }
+            
+            clearAllWithoutConfirm();
+            
+            try {
+                const data = JSON.parse(saved);
+                data.forEach(item => {
+                    const geometry = new THREE.BoxGeometry(...item.size);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: item.color,
+                        roughness: 0.7,
+                        metalness: 0.1
+                    });
+                    
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(item.position.x, item.position.y, item.position.z);
+                    mesh.rotation.y = item.rotation.y;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    
+                    mesh.userData = {
+                        id: 'item-' + (++itemIdCounter),
+                        type: item.type,
+                        label: item.label,
+                        icon: item.icon,
+                        color: item.color,
+                        size: item.size
+                    };
+                    
+                    scene.add(mesh);
+                    placedObjects.push(mesh);
+                });
+                
+                document.getElementById('instructions').classList.add('hidden');
+                showStatus('Design loaded!', 'success');
+            } catch (err) {
+                showStatus('Error loading design', 'error');
+                console.error(err);
+            }
+        }
+
+        function clearAllWithoutConfirm() {
+            placedObjects.forEach(obj => {
+                scene.remove(obj);
+                obj.geometry.dispose();
+                obj.material.dispose();
+            });
+            placedObjects = [];
+            selectedObject = null;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.opacity = '1';
+            
+            setTimeout(() => {
+                status.style.opacity = '0';
+            }, 2000);
+        }
+
+        function resetCamera() {
+            camera.position.set(15, 15, 15);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function topView() {
+            camera.position.set(0, 25, 0.01);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function toggleCategory(header) {
+            header.closest('.category').classList.toggle('collapsed');
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>

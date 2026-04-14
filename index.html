@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Condominium Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container">
+            <div class="login-visual">
+                <div class="building-3d">
+                    <div class="floor floor-1"></div>
+                    <div class="floor floor-2"></div>
+                    <div class="floor floor-3"></div>
+                    <div class="roof"></div>
+                    <div class="windows">
+                        <div class="window"></div>
+                        <div class="window"></div>
+                        <div class="window"></div>
+                        <div class="window"></div>
+                    </div>
+                </div>
+                <h1>Smart Condominium<br>Management System</h1>
+                <p>Smart Living, Simplified</p> <br> <br>
+            </div>
+            <div class="login-form-container">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Sign in using your Account</p>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Email Address" value="resident@condo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Password" value="password123" required>
+                        <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="remember-forgot">
+                        <label><input type="checkbox" checked> Remember me</label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="login-btn">Sign In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-building"></i>
+                    <span>SCMS</span>
+                </div>
+                <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="units">
+                    <i class="fas fa-cube"></i>
+                    <span>3D Condo Unit Visualization</span>
+                </a>
+                <a href="#" class="nav-item" data-page="facilities">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Facility Reservation</span>
+                </a>
+                <a href="#" class="nav-item" data-page="announcements">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </a>
+                <a href="#" class="nav-item" data-page="maintenance">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance</span>
+                </a>
+                <!-- <a href="#" class="nav-item" data-page="payments">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </a> -->
+                <a href="#" class="nav-item" data-page="visitors">
+                    <i class="fas fa-users"></i>
+                    <span>Visitors</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="header-actions">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar">JD</div>
+                        <div class="user-info">
+                            <span class="name">John Doe</span>
+                            <span class="role">Unit Owner</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <div class="page" id="dashboard-page">
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <p>Welcome back, John! Here's the condominium overview.</p>
+                    </div>
+                    <div class="stats-grid">
+                        <!-- <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-home"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value">Unit 1204</span>
+                                <span class="stat-label">Your Unit</span>
+                            </div>
+                        </div> -->
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value">4</span>
+                                <span class="stat-label">Upcoming Reservations</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value">1</span>
+                                <span class="stat-label">Pending Maintenance</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-peso-sign"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value">₱500,000.00</span>
+                                <span class="stat-label">Total Sales</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="card recent-activity">
+                            <div class="card-header">
+                                <h3>Recent Activity</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="activity-item">
+                                    <div class="activity-icon"><i class="fas fa-check-circle"></i></div>
+                                    <div class="activity-details">
+                                        <span class="activity-title">Facility Reservation Confirmed</span>
+                                        <span class="activity-time">Pool reservation for tomorrow, 2PM</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon warning"><i class="fas fa-tools"></i></div>
+                                    <div class="activity-details">
+                                        <span class="activity-title">Maintenance Request Updated</span>
+                                        <span class="activity-time">AC repair - In Progress</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon info"><i class="fas fa-bullhorn"></i></div>
+                                    <div class="activity-details">
+                                        <span class="activity-title">New Announcement</span>
+                                        <span class="activity-time">Pool maintenance scheduled for Friday</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card quick-actions">
+                            <div class="card-header">
+                                <h3>Quick Actions</h3>
+                            </div>
+                            <div class="card-body">
+                                <button class="action-btn" data-page="facilities">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    <span>Book Facility</span>
+                                </button>
+                                <button class="action-btn" data-page="maintenance">
+                                    <i class="fas fa-wrench"></i>
+                                    <span>Request Repair</span>
+                                </button>
+                                <button class="action-btn" data-page="units">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Unit</span>
+                                </button>
+                                <button class="action-btn" data-page="payments">
+                                    <i class="fas fa-file-invoice"></i>
+                                    <span>Pay Bills</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="units-page">
+                    <div class="page-header">
+                        <h1>3D Condo Unit Visualization</h1>
+                        <p>Explore your condominium unit in immersive 3D view</p>
+                    </div>
+                    <div class="units-container">
+                        <div class="unit-selector">
+                            <div class="tower-selector">
+                                <h3>Select Tower</h3>
+                                <div class="tower-buttons">
+                                    <button class="tower-btn active" data-tower="tower-a">Tower A</button>
+                                    <button class="tower-btn" data-tower="tower-b">Tower B</button>
+                                    <button class="tower-btn" data-tower="tower-c">Tower C</button>
+                                </div>
+                            </div>
+                            <div class="floor-selector">
+                                <h3>Select Floor</h3>
+                                <input type="range" min="1" max="25" value="12" id="floorSlider">
+                                <span class="floor-display">Floor 12</span>
+                            </div>
+                            <div class="unit-list">
+                                <h3>Available Units</h3>
+                                <div class="unit-grid">
+                                    <div class="unit-card" data-unit="1201">
+                                        <span class="unit-number">1201</span>
+                                        <span class="unit-status occupied">Occupied</span>
+                                    </div>
+                                    <div class="unit-card" data-unit="1202">
+                                        <span class="unit-number">1202</span>
+                                        <span class="unit-status available">Available</span>
+                                    </div>
+                                    <div class="unit-card" data-unit="1203">
+                                        <span class="unit-number">1203</span>
+                                        <span class="unit-status occupied">Occupied</span>
+                                    </div>
+                                    <div class="unit-card active" data-unit="1204">
+                                        <span class="unit-number">1204</span>
+                                        <span class="unit-status your-unit">Your Unit</span>
+                                    </div>
+                                    <div class="unit-card" data-unit="1205">
+                                        <span class="unit-number">1205</span>
+                                        <span class="unit-status available">Available</span>
+                                    </div>
+                                    <div class="unit-card" data-unit="1206">
+                                        <span class="unit-number">1206</span>
+                                        <span class="unit-status occupied">Occupied</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="unit-viewer">
+                            <div class="viewer-3d">
+                                <div class="building-model">
+                                    <div class="model-floor"></div>
+                                    <div class="model-floor"></div>
+                                    <div class="model-floor"></div>
+                                    <div class="model-floor"></div>
+                                    <div class="model-roof"></div>
+                                </div>
+                                <div class="viewer-controls">
+                                    <button class="rotate-btn"><i class="fas fa-undo"></i></button>
+                                    <button class="rotate-btn"><i class="fas fa-redo"></i></button>
+                                    <button class="zoom-btn"><i class="fas fa-plus"></i></button>
+                                    <button class="zoom-btn"><i class="fas fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="unit-details">
+                                <h3>Unit 1204 - Your Home</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Type</span>
+                                        <span class="detail-value">2 Bedroom</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Area</span>
+                                        <span class="detail-value">85 sqm</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Floor</span>
+                                        <span class="detail-value">12th Floor</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Tower</span>
+                                        <span class="detail-value">Tower A</span>
+                                    </div>
+                                </div>
+                                <button class="view-tour-btn" onclick="window.location.href='3d_unit_visualization.html'"><i class="fas fa-play"></i> Start Virtual Tour</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="facilities-page">
+                    <div class="page-header">
+                        <h1>Facility Reservation</h1>
+                        <p>Book amenities and common areas in your condominium</p>
+                    </div>
+                    <div class="facilities-container">
+                        <div class="facility-category">
+                            <h3>Recreation</h3>
+                            <div class="facility-grid">
+                                <div class="facility-card">
+                                    <div class="facility-image pool">
+                                        <i class="fas fa-swimming-pool"></i>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h4>Swimming Pool</h4>
+                                        <p>Outdoor rooftop pool with city views</p>
+                                        <div class="facility-meta">
+                                            <span><i class="fas fa-users"></i> Max 20</span>
+                                            <span><i class="fas fa-clock"></i> 6AM-10PM</span>
+                                        </div>
+                                        <button class="book-btn" data-facility="pool">Book Now</button>
+                                    </div>
+                                </div>
+                                <div class="facility-card">
+                                    <div class="facility-image gym">
+                                        <i class="fas fa-dumbbell"></i>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h4>Fitness Center</h4>
+                                        <p>Fully equipped gym with modern equipment</p>
+                                        <div class="facility-meta">
+                                            <span><i class="fas fa-users"></i> Max 15</span>
+                                            <span><i class="fas fa-clock"></i> 24/7</span>
+                                        </div>
+                                        <button class="book-btn" data-facility="gym">Book Now</button>
+                                    </div>
+                                </div>
+                                <div class="facility-card">
+                                    <div class="facility-image tennis">
+                                        <i class="fa-solid fa-basketball"></i>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h4>Basketball Court</h4>
+                                        <p>Professional outdoor basketball court</p>
+                                        <div class="facility-meta">
+                                            <span><i class="fas fa-users"></i> Max 10</span>
+                                            <span><i class="fas fa-clock"></i> 6AM-10PM</span>
+                                        </div>
+                                        <button class="book-btn" data-facility="tennis">Book Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="facility-category">
+                            <h3>Function Rooms</h3>
+                            <div class="facility-grid">
+                                <div class="facility-card">
+                                    <div class="facility-image function">
+                                        <i class="fas fa-people-roof"></i>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h4>Function Hall</h4>
+                                        <p>Large hall for events up to 100 guests</p>
+                                        <div class="facility-meta">
+                                            <span><i class="fas fa-users"></i> Max 100</span>
+                                            <span><i class="fas fa-clock"></i> 8AM-11PM</span>
+                                        </div>
+                                        <button class="book-btn" data-facility="function">Book Now</button>
+                                    </div>
+                                </div>
+                                <!-- <div class="facility-card">
+                                    <div class="facility-image meeting">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h4>Meeting Room</h4>
+                                        <p>Conference room with AV equipment</p>
+                                        <div class="facility-meta">
+                                            <span><i class="fas fa-users"></i> Max 12</span>
+                                            <span><i class="fas fa-clock"></i> 8AM-9PM</span>
+                                        </div>
+                                        <button class="book-btn" data-facility="meeting">Book Now</button>
+                                    </div>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reservations-section">
+                        <h3>Your Reservations</h3>
+                        <div class="reservations-list">
+                            <div class="reservation-item">
+                                <div class="reservation-date">
+                                    <span class="day">16</span>
+                                    <span class="month">Apr</span>
+                                </div>
+                                <div class="reservation-details">
+                                    <h4>Swimming Pool</h4>
+                                    <p>2:00 PM - 4:00 PM</p>
+                                </div>
+                                <span class="reservation-status confirmed">Confirmed</span>
+                                <button class="cancel-btn">Cancel</button>
+                            </div>
+                            <div class="reservation-item">
+                                <div class="reservation-date">
+                                    <span class="day">18</span>
+                                    <span class="month">Apr</span>
+                                </div>
+                                <div class="reservation-details">
+                                    <h4>Fitness Center</h4>
+                                    <p>7:00 AM - 8:00 AM</p>
+                                </div>
+                                <span class="reservation-status confirmed">Confirmed</span>
+                                <button class="cancel-btn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="announcements-page">
+                    <div class="page-header">
+                        <h1>Announcements</h1>
+                        <p>Stay updated with the latest news and updates</p>
+                    </div>
+                    <div class="announcements-list">
+                        <div class="announcement-card urgent">
+                            <div class="announcement-header">
+                                <span class="tag urgent">Urgent</span>
+                                <span class="date">Apr 14, 2026</span>
+                            </div>
+                            <h3>Pool Maintenance Notice</h3>
+                            <p>The main swimming pool will be closed for maintenance from April 18-20, 2026. Please use the kiddie pool during this time.</p>
+                        </div>
+                        <div class="announcement-card">
+                            <div class="announcement-header">
+                                <span class="tag">General</span>
+                                <span class="date">Apr 12, 2026</span>
+                            </div>
+                            <h3>New Security Protocol</h3>
+                            <p>Starting April 20, all visitors must register at the security office. Please inform your guests accordingly.</p>
+                        </div>
+                        <div class="announcement-card">
+                            <div class="announcement-header">
+                                <span class="tag">Event</span>
+                                <span class="date">Apr 10, 2026</span>
+                            </div>
+                            <h3>Earthquake Drill Scheduled</h3>
+                            <p>A mandatory earthquake drill will be conducted on April 25, 2026 at 10:00 AM. All residents are requested to participate.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="maintenance-page">
+                    <div class="page-header">
+                        <h1>Maintenance Requests</h1>
+                        <p>Submit and track your maintenance requests</p>
+                    </div>
+                    <div class="maintenance-form">
+                        <form id="maintenanceForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Category</label>
+                                    <select>
+                                        <option>Plumbing</option>
+                                        <option>Electrical</option>
+                                        <option>HVAC</option>
+                                        <option>Appliances</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Priority</label>
+                                    <select>
+                                        <option>Low</option>
+                                        <option>Medium</option>
+                                        <option>High</option>
+                                        <option>Emergency</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <input type="text" placeholder="Brief description of the issue">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea placeholder="Please provide details about the issue..."></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">Submit Request</button>
+                        </form>
+                    </div>
+                    <div class="requests-list">
+                        <h3>Your Requests</h3>
+                        <div class="request-item">
+                            <div class="request-header">
+                                <span class="request-id">#MR-001</span>
+                                <span class="request-status in-progress">In Progress</span>
+                            </div>
+                            <h4>AC Unit Repair - Master Bedroom</h4>
+                            <p>Air conditioning unit not cooling properly. Technician assigned.</p>
+                            <span class="request-date">Submitted: Apr 10, 2026</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- <div class="page hidden" id="payments-page">
+                    <div class="page-header">
+                        <h1>Payments</h1>
+                        <p>View and pay your condominium dues</p>
+                    </div>
+                    <div class="payments-container">
+                        <div class="balance-card">
+                            <div class="balance-info">
+                                <span class="balance-label">Outstanding Balance</span>
+                                <span class="balance-amount">₱12,500.00</span>
+                                <span class="balance-due">Due: April 30, 2026</span>
+                            </div>
+                            <button class="pay-now-btn">Pay Now</button>
+                        </div>
+                        <div class="billing-history">
+                            <h3>Billing History</h3>
+                            <table class="billing-table">
+                                <thead>
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>March 2026</td>
+                                        <td>₱12,500.00</td>
+                                        <td><span class="status paid">Paid</span></td>
+                                        <td>Mar 28, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>February 2026</td>
+                                        <td>₱12,500.00</td>
+                                        <td><span class="status paid">Paid</span></td>
+                                        <td>Feb 26, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td>January 2026</td>
+                                        <td>₱12,500.00</td>
+                                        <td><span class="status paid">Paid</span></td>
+                                        <td>Jan 25, 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="page hidden" id="visitors-page">
+                    <div class="page-header">
+                        <h1>Visitors</h1>
+                        <p>Manage visitor registrations and log</p>
+                    </div>
+                    <div class="visitors-container">
+                        <div class="visitor-form">
+                            <h3>Register Visitor</h3>
+                            <form id="visitorForm">
+                                <div class="form-group">
+                                    <label>Visitor Name</label>
+                                    <input type="text" placeholder="Full name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Purpose of Visit</label>
+                                    <select>
+                                        <option>Family Visit</option>
+                                        <option>Delivery</option>
+                                        <option>Service</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Expected Time</label>
+                                        <input type="time">
+                                    </div>
+                                </div>
+                                <button type="submit" class="submit-btn">Register Visitor</button>
+                            </form>
+                        </div>
+                        <div class="visitor-log">
+                            <h3>Recent Visitors</h3>
+                            <div class="visitor-item">
+                                <div class="visitor-info">
+                                    <span class="visitor-name">Maria Santos</span>
+                                    <span class="visitor-purpose">Family Visit</span>
+                                </div>
+                                <span class="visitor-time">Today, 2:30 PM</span>
+                            </div>
+                            <div class="visitor-item">
+                                <div class="visitor-info">
+                                    <span class="visitor-name">John Delivery</span>
+                                    <span class="visitor-purpose">Delivery</span>
+                                </div>
+                                <span class="visitor-time">Today, 11:00 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="settings-page">
+                    <div class="page-header">
+                        <h1>Settings</h1>
+                        <p>Manage your account preferences</p>
+                    </div>
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3>Profile Information</h3>
+                            <form class="settings-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>First Name</label>
+                                        <input type="text" value="John">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Last Name</label>
+                                        <input type="text" value="Doe">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" value="resident@condo.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" value="+63 912 345 6789">
+                                </div>
+                                <button type="submit" class="save-btn">Save Changes</button>
+                            </form>
+                        </div>
+                        <div class="settings-section">
+                            <h3>Notification Preferences</h3>
+                            <div class="toggle-group">
+                                <!-- <div class="toggle-item">
+                                    <div class="toggle-info">
+                                        <span class="toggle-label">Email Notifications</span>
+                                        <span class="toggle-desc">Receive updates via email</span>
+                                    </div>
+                                    <label class="toggle">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-item">
+                                    <div class="toggle-info">
+                                        <span class="toggle-label">SMS Alerts</span>
+                                        <span class="toggle-desc">Receive urgent alerts via SMS</span>
+                                    </div>
+                                    <label class="toggle">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div> -->
+                                <div class="toggle-item">
+                                    <div class="toggle-info">
+                                        <span class="toggle-label">In-App Notifications</span>
+                                        <span class="toggle-desc">Web Notifications</span>
+                                    </div>
+                                    <label class="toggle">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Book Facility</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Number of Guests</label>
+                    <input type="number" min="1" max="20" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Special Requests</label>
+                    <textarea placeholder="Any special requirements..."></textarea>
+                </div>
+                <button type="submit" class="confirm-booking-btn">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
