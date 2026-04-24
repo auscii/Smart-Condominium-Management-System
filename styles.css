@@ -2084,3 +2084,675 @@ body {
         display: none;
     }
 }
+
+/* Marketplace Styles */
+.marketplace-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.marketplace-filters {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.search-filter {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.search-filter i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-filter input {
+    width: 100%;
+    padding: 12px 16px 12px 45px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.search-filter input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.category-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 8px 16px;
+    background: var(--surface-dark);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: var(--transition);
+    color: var(--text-light);
+}
+
+.category-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.marketplace-listings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.listing-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.listing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.listing-image {
+    height: 160px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--text-light);
+}
+
+.listing-info {
+    padding: 16px;
+}
+
+.listing-category {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.listing-info h4 {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.listing-info p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 12px;
+}
+
+.listing-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.listing-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.listing-price .price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.contact-btn {
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.contact-btn:hover {
+    background: var(--primary-dark);
+}
+
+.add-listing {
+    text-align: center;
+}
+
+.add-listing-btn {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.add-listing-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Events Styles */
+.events-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+}
+
+.events-calendar {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-header h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 8px;
+}
+
+.calendar-nav button {
+    width: 32px;
+    height: 32px;
+    background: var(--surface-dark);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-light);
+}
+
+.calendar-nav button:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+}
+
+.calendar-day {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 8px 0;
+}
+
+.calendar-date {
+    padding: 8px;
+    font-size: 0.875rem;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.calendar-date:hover {
+    background: var(--surface-dark);
+}
+
+.calendar-date.event-day {
+    background: var(--primary);
+    color: white;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.events-list h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.event-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.event-card:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.event-date-badge {
+    width: 60px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.event-day-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.event-month {
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.event-details {
+    flex: 1;
+}
+
+.event-details h4 {
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.event-details p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+}
+
+.event-details p i {
+    width: 16px;
+    margin-right: 6px;
+}
+
+.event-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.event-status.upcoming {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.event-status.mandatory {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.event-register-btn {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.event-register-btn:hover {
+    background: var(--primary-dark);
+}
+
+.event-promote {
+    background: var(--surface);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-top: 20px;
+}
+
+.event-promote h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.event-promote p {
+    color: var(--text-light);
+    margin-bottom: 16px;
+}
+
+.promote-event-btn {
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.promote-event-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Emergency Styles */
+.emergency-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.emergency-alert-banner {
+    background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+    padding: 16px 24px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.emergency-alert-banner i {
+    font-size: 1.5rem;
+}
+
+.emergency-contacts h3,
+.emergency-actions h3,
+.emergency-procedures h3,
+.emergency-assembly h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.emergency-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.emergency-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.emergency-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.emergency-card.fire {
+    border-left: 4px solid #ef4444;
+}
+
+.emergency-card.police {
+    border-left: 4px solid #3b82f6;
+}
+
+.emergency-card.medical {
+    border-left: 4px solid #10b981;
+}
+
+.emergency-card.security {
+    border-left: 4px solid #f59e0b;
+}
+
+.emergency-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.emergency-card.fire .emergency-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.emergency-card.police .emergency-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.emergency-card.medical .emergency-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.emergency-card.security .emergency-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.emergency-info {
+    flex: 1;
+}
+
+.emergency-info h4 {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.emergency-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.emergency-call-btn {
+    padding: 10px 20px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.emergency-call-btn:hover {
+    background: #dc2626;
+}
+
+.emergency-types {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.emergency-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    color: var(--text);
+}
+
+.emergency-type-btn:hover {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.emergency-type-btn i {
+    font-size: 1.5rem;
+    color: var(--danger);
+}
+
+.emergency-procedures {
+    background: var(--surface);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.procedure-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.procedure-tab {
+    padding: 10px 20px;
+    background: var(--surface-dark);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: var(--transition);
+    color: var(--text-light);
+}
+
+.procedure-tab.active {
+    background: var(--danger);
+    color: white;
+}
+
+.procedure-content {
+    background: var(--surface-dark);
+    padding: 20px;
+    border-radius: var(--radius);
+}
+
+.procedure-content ol {
+    margin-left: 20px;
+}
+
+.procedure-content li {
+    padding: 8px 0;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.procedure-content h4 {
+    margin-bottom: 16px;
+    color: var(--text);
+}
+
+.procedure.hidden {
+    display: none;
+}
+
+.assembly-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.assembly-point {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.assembly-point i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.assembly-info h4 {
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.assembly-info p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 1024px) {
+    .events-container {
+        grid-template-columns: 1fr;
+    }
+    .emergency-grid {
+        grid-template-columns: 1fr;
+    }
+    .emergency-types {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .marketplace-listings {
+        grid-template-columns: 1fr;
+    }
+    .emergency-types {
+        grid-template-columns: 1fr;
+    }
+    .event-card {
+        flex-wrap: wrap;
+    }
+    .event-register-btn {
+        width: 100%;
+    }
+}

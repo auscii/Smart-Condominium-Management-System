@@ -182,4 +182,39 @@ document.addEventListener('DOMContentLoaded', function() {
             bookingModal.classList.remove('active');
         }
     });
+
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            categoryBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    const procedureTabs = document.querySelectorAll('.procedure-tab');
+    const procedures = document.querySelectorAll('.procedure');
+    procedureTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            procedureTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const procedureId = this.getAttribute('data-procedure');
+            procedures.forEach(p => p.classList.add('hidden'));
+            document.getElementById(procedureId + '-procedure').classList.remove('hidden');
+        });
+    });
+
+    const emergencyTypeBtns = document.querySelectorAll('.emergency-type-btn');
+    emergencyTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const issue = this.querySelector('span').textContent;
+            alert('Reporting: ' + issue + '. Our emergency team will be notified.');
+        });
+    });
+
+    const callBtns = document.querySelectorAll('.emergency-call-btn');
+    callBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            alert('Dialing emergency contact...');
+        });
+    });
 });
