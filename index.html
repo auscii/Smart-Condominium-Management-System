@@ -46,9 +46,11 @@
                     <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
                     <!-- <p class="signup-link">Don't have an account? <a href="#" id="signupLink">Sign up</a></p> -->
                 </form>
-            </div>
-        </div>
-    </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
 
     <div class="app-container" id="appContainer">
         <aside class="sidebar" id="sidebar">
@@ -100,6 +102,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
+                <!-- <a href="admin-reservations.html" class="nav-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Admin: Reservations</span>
+                </a> -->
             </nav>
             <div class="sidebar-footer">
                 <a href="#" id="logoutBtn">
@@ -163,7 +169,7 @@
                         </div>
                     </div>
                     <div class="dashboard-grid">
-                        <div class="card recent-activity">
+                        <!-- <div class="card recent-activity">
                             <div class="card-header">
                                 <h3>Recent Activity</h3>
                             </div>
@@ -190,7 +196,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="card quick-actions">
                             <div class="card-header">
                                 <h3>Quick Actions</h3>
@@ -204,7 +210,7 @@
                                     <i class="fas fa-wrench"></i>
                                     <span>Maintenance Module</span>
                                 </button>
-                                <button class="action-btn" data-page="units">
+                                <button class="action-btn" data-page="visitors">
                                     <i class="fas fa-users"></i>
                                     <span>Visitors</span>
                                 </button>
@@ -212,6 +218,20 @@
                                     <i class="fas fa-cog"></i>
                                     <span>Settings</span>
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card recent-visitors-card">
+                        <div class="card-header">
+                            <h3>Recent Visitors</h3>
+                            <a href="#" class="view-all" data-page="visitors">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="visitors-list" id="dashboardVisitorsList">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>No recent visitors</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -314,7 +334,7 @@
                         <h1>Facility Reservation</h1>
                         <p>Book amenities and common areas in your condominium</p>
                     </div>
-                    <div class="facilities-container">
+                    <!-- <div class="facilities-container">
                         <div class="facility-category">
                             <h3>Recreation</h3>
                             <div class="facility-grid">
@@ -379,25 +399,12 @@
                                          <button class="book-btn" data-facility="function" data-facility-name="Function Hall">Book Now</button>
                                     </div>
                                 </div>
-                                <!-- <div class="facility-card">
-                                    <div class="facility-image meeting">
-                                        <i class="fas fa-video"></i>
-                                    </div>
-                                    <div class="facility-info">
-                                        <h4>Meeting Room</h4>
-                                        <p>Conference room with AV equipment</p>
-                                        <div class="facility-meta">
-                                            <span><i class="fas fa-users"></i> Max 12</span>
-                                            <span><i class="fas fa-clock"></i> 8AM-9PM</span>
-                                        </div>
-                                        <button class="book-btn" data-facility="meeting">Book Now</button>
-                                    </div>
-                                </div> -->
                             </div>
                         </div>
-                    </div>
+                    </div> -->
+
                     <div class="reservations-section">
-                        <h3>Your Reservations</h3>
+                        <h3>Reservation Lists</h3>
                         <div class="reservations-list">
                             <div class="reservation-item">
                                 <div class="reservation-date">
@@ -432,50 +439,57 @@
                         <h1>Maintenance Requests</h1>
                         <p>Submit and track your maintenance requests</p>
                     </div>
-                    <div class="maintenance-form">
-                        <form id="maintenanceForm">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Category</label>
-                                    <select>
-                                        <option>Plumbing</option>
-                                        <option>Electrical</option>
-                                        <option>HVAC</option>
-                                        <option>Appliances</option>
-                                        <option>Other</option>
-                                    </select>
+                    <div class="maintenance-container">
+                        <div class="maintenance-form">
+                            <h3>Submit New Request</h3>
+                            <form id="maintenanceForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select id="maintenanceCategory" required>
+                                            <option value="">Select category</option>
+                                            <option value="Plumbing">Plumbing</option>
+                                            <option value="Electrical">Electrical</option>
+                                            <option value="HVAC">HVAC</option>
+                                            <option value="Appliances">Appliances</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Priority</label>
+                                        <select id="maintenancePriority" required>
+                                            <option value="">Select priority</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Emergency">Emergency</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Priority</label>
-                                    <select>
-                                        <option>Low</option>
-                                        <option>Medium</option>
-                                        <option>High</option>
-                                        <option>Emergency</option>
-                                    </select>
+                                    <label>Subject</label>
+                                    <input type="text" id="maintenanceSubject" placeholder="Brief description of the issue" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="maintenanceDescription" placeholder="Please provide details about the issue..." required></textarea>
+                                </div>
+                                <button type="submit" class="submit-btn" id="maintenanceSubmitBtn">
+                                    <span class="btn-text">Submit Request</span>
+                                    <span class="btn-loader">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="requests-list">
+                            <h3>All Maintenance Requests</h3>
+                            <div class="requests-container" id="maintenanceRequestsList">
+                                <div class="empty-state">
+                                    <i class="fas fa-wrench"></i>
+                                    <p>No maintenance requests yet</p>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>Subject</label>
-                                <input type="text" placeholder="Brief description of the issue">
-                            </div>
-                            <div class="form-group">
-                                <label>Description</label>
-                                <textarea placeholder="Please provide details about the issue..."></textarea>
-                            </div>
-                            <button type="submit" class="submit-btn">Submit Request</button>
-                        </form>
-                    </div>
-                    <div class="requests-list">
-                        <h3>Your Requests</h3>
-                        <div class="request-item">
-                            <div class="request-header">
-                                <span class="request-id">#MR-001</span>
-                                <span class="request-status in-progress">In Progress</span>
-                            </div>
-                            <h4>AC Unit Repair - Master Bedroom</h4>
-                            <p>Air conditioning unit not cooling properly. Technician assigned.</p>
-                            <span class="request-date">Submitted: Apr 10, 2026</span>
                         </div>
                     </div>
                 </div>
@@ -541,45 +555,46 @@
                             <form id="visitorForm">
                                 <div class="form-group">
                                     <label>Visitor Name</label>
-                                    <input type="text" placeholder="Full name">
+                                    <input type="text" id="visitorName" placeholder="Full name" required>
                                 </div>
                                 <div class="form-group">
                                     <label>Purpose of Visit</label>
-                                    <select>
-                                        <option>Family Visit</option>
-                                        <option>Delivery</option>
-                                        <option>Service</option>
-                                        <option>Other</option>
+                                    <select id="visitorPurpose" required>
+                                        <option value="">Select purpose</option>
+                                        <option value="Family Visit">Family Visit</option>
+                                        <option value="Delivery">Delivery</option>
+                                        <option value="Service">Service</option>
+                                        <option value="Other">Other</option>
                                     </select>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label>Date</label>
-                                        <input type="date">
+                                        <input type="date" id="visitorDate" required>
                                     </div>
                                     <div class="form-group">
                                         <label>Expected Time</label>
-                                        <input type="time">
+                                        <input type="time" id="visitorTime" required>
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Visitor Phone (Optional)</label>
+                                    <input type="tel" id="visitorPhone" placeholder="+63 912 345 6789">
+                                </div>
+                                <div class="form-group">
+                                    <label>Notes (Optional)</label>
+                                    <textarea id="visitorNotes" placeholder="Any additional information..."></textarea>
                                 </div>
                                 <button type="submit" class="submit-btn">Register Visitor</button>
                             </form>
                         </div>
                         <div class="visitor-log">
                             <h3>Recent Visitors</h3>
-                            <div class="visitor-item">
-                                <div class="visitor-info">
-                                    <span class="visitor-name">Maria Santos</span>
-                                    <span class="visitor-purpose">Family Visit</span>
+                            <div class="visitor-list" id="visitorsList">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>No recent visitors</p>
                                 </div>
-                                <span class="visitor-time">Today, 2:30 PM</span>
-                            </div>
-                            <div class="visitor-item">
-                                <div class="visitor-info">
-                                    <span class="visitor-name">John Delivery</span>
-                                    <span class="visitor-purpose">Delivery</span>
-                                </div>
-                                <span class="visitor-time">Today, 11:00 AM</span>
                             </div>
                         </div>
                     </div>
@@ -1033,8 +1048,8 @@
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
-            </div>
         </main>
     </div>
 
@@ -1067,8 +1082,8 @@
                 </div>
                 <button type="submit" class="confirm-booking-btn">Confirm Booking</button>
             </form>
-        </div>
-    </div>
+                        </div>
+                    </div>
 
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>

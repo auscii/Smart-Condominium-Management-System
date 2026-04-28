@@ -187,19 +187,22 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('User profile not found in Firestore');
         }
 
-        loadReservations(user.uid);
+        loadReservations();
+        loadDashboardVisitors();
     }
 
-    // Load user's reservations from Firestore
-    async function loadReservations(userId) {
+    // Load all reservations from Firestore
+    async function loadReservations() {
         try {
-            const result = await FirestoreService.query('reservations', 'userId', '==', userId);
+            const result = await FirestoreService.getAll('reservations', 'createdAt');
             const reservationsList = document.querySelector('.reservations-list');
-            
+            const currentUser = firebase.auth().currentUser;
+
             if (result.success && result.data.length > 0) {
                 if (reservationsList) {
                     reservationsList.innerHTML = result.data.map(res => {
                         const date = res.date ? new Date(res.date) : new Date(res.createdAt?.seconds * 1000 || Date.now());
+                        const isOwner = currentUser && res.userId === currentUser.uid;
                         return `
                             <div class="reservation-item">
                                 <div class="reservation-date">
@@ -211,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <p>${res.startTime || ''} - ${res.endTime || ''}</p>
                                 </div>
                                 <span class="reservation-status ${res.status || 'pending'}">${res.status || 'Pending'}</span>
-                                ${res.status !== 'cancelled' ? 
+                                ${isOwner && res.status !== 'cancelled' ? 
                                     `<button class="cancel-btn" onclick="cancelReservation('${res.id}')">Cancel</button>` : 
                                     ''}
                             </div>
@@ -233,14 +236,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cancel reservation
     window.cancelReservation = async function(reservationId) {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showToast('❌ Please log in to cancel reservations.', 'error');
+            return;
+        }
+
+        // Verify ownership before cancelling
+        const result = await FirestoreService.getDoc('reservations', reservationId);
+        if (!result.success || !result.data) {
+            showToast('❌ Reservation not found', 'error');
+            return;
+        }
+
+        const reservation = result.data;
+        if (reservation.userId !== user.uid) {
+            showToast('❌ You can only cancel your own reservations', 'error');
+            return;
+        }
+
         if (confirm('Are you sure you want to cancel this reservation?')) {
-            const result = await FirestoreService.deleteDoc('reservations', reservationId);
-            if (result.success) {
-                const user = firebase.auth().currentUser;
-                if (user) loadReservations(user.uid);
+            const updateResult = await FirestoreService.updateDoc('reservations', reservationId, {
+                status: 'cancelled',
+                cancelledAt: new Date()
+            });
+            
+            if (updateResult.success) {
                 showToast('✅ Reservation cancelled', 'success');
+                loadReservations();
             } else {
-                showToast('❌ Error: ' + result.error, 'error');
+                showToast('❌ ' + updateResult.error, 'error');
             }
         }
     };
@@ -255,6 +280,14 @@ document.addEventListener('DOMContentLoaded', function() {
             pages.forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId + '-page').classList.remove('hidden');
             if (window.innerWidth < 768) sidebar.classList.remove('active');
+
+            // Load page-specific data
+            if (pageId === 'visitors') {
+                loadRecentVisitors();
+            }
+            if (pageId === 'maintenance') {
+                loadMaintenanceRequests();
+            }
         });
     });
 
@@ -266,6 +299,26 @@ document.addEventListener('DOMContentLoaded', function() {
             pages.forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId + '-page').classList.remove('hidden');
             if (window.innerWidth < 768) sidebar.classList.remove('active');
+
+            // Load page-specific data
+            if (pageId === 'visitors') {
+                loadRecentVisitors();
+            }
+            if (pageId === 'maintenance') {
+                loadMaintenanceRequests();
+            }
+        });
+    });
+
+    // View All links (dashboard cards)
+    document.querySelectorAll('.view-all').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pageId = this.getAttribute('data-page');
+            const navItem = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+            if (navItem) {
+                navItem.click();
+            }
         });
     });
 
@@ -352,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToast('✅ Booking confirmed!', 'success');
                     bookingModal.classList.remove('active');
                     bookingForm.reset();
-                    loadReservations(user.uid);
+        loadReservations();
                 } else {
                     showToast('❌ Error: ' + result.error, 'error');
                 }
@@ -360,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Maintenance form
+    // Maintenance form - Store in Firestore
     if (maintenanceForm) {
         maintenanceForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -371,20 +424,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const formData = {
-                category: this.querySelector('select').value,
-                priority: this.querySelectorAll('select')[1].value,
-                subject: this.querySelector('input[type="text"]').value,
-                description: this.querySelector('textarea').value,
+                category: this.querySelector('#maintenanceCategory').value,
+                priority: this.querySelector('#maintenancePriority').value,
+                subject: this.querySelector('#maintenanceSubject').value,
+                description: this.querySelector('#maintenanceDescription').value,
                 status: 'open',
                 userId: user.uid,
                 userEmail: user.email,
                 createdAt: new Date()
             };
 
+            // Validate required fields
+            if (!formData.category || !formData.priority || !formData.subject || !formData.description) {
+                showToast('❌ Please fill in all required fields.', 'error');
+                return;
+            }
+
             FirestoreService.addDoc('maintenance_requests', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Maintenance request submitted!', 'success');
+                    showToast('✅ Maintenance request submitted successfully!', 'success');
                     maintenanceForm.reset();
+                    loadMaintenanceRequests(); // Refresh the requests list
                 } else {
                     showToast('❌ Error: ' + result.error, 'error');
                 }
@@ -392,7 +452,115 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Visitor form
+    // Load all maintenance requests from Firestore
+    async function loadMaintenanceRequests() {
+        try {
+            const result = await FirestoreService.getAll('maintenance_requests', 'createdAt');
+            const container = document.getElementById('maintenanceRequestsList');
+            
+            if (!container) return;
+
+            if (result.success && result.data.length > 0) {
+                container.innerHTML = result.data.map(req => {
+                    const date = req.createdAt?.seconds 
+                        ? new Date(req.createdAt.seconds * 1000)
+                        : new Date(req.createdAt || Date.now());
+                    
+                    const priorityClass = (req.priority || 'medium').toLowerCase();
+                    const statusClass = (req.status || 'open').toLowerCase().replace(' ', '-');
+                    const priorityIcon = {
+                        'low': 'fa-arrow-down',
+                        'medium': 'fa-minus',
+                        'high': 'fa-arrow-up',
+                        'emergency': 'fa-exclamation-triangle'
+                    }[priorityClass] || 'fa-circle';
+                    
+                    const currentUser = firebase.auth().currentUser;
+                    const isOwner = currentUser && req.userId === currentUser.uid;
+                    
+                    return `
+                        <div class="request-item" data-priority="${priorityClass}">
+                            <div class="request-header">
+                                <span class="request-id">#${req.id.substring(0, 8).toUpperCase()}</span>
+                                <span class="request-priority priority-${priorityClass}">
+                                    <i class="fas ${priorityIcon}"></i> ${req.priority || 'Medium'}
+                                </span>
+                            </div>
+                            <div class="request-body">
+                                <h4>${req.subject || 'No subject'}</h4>
+                                <p>${req.description || 'No description'}</p>
+                                <div class="request-meta">
+                                    <span class="request-category">
+                                        <i class="fas fa-tag"></i> ${req.category || 'General'}
+                                    </span>
+                                    <span class="request-date">
+                                        <i class="fas fa-calendar"></i> ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                    <span class="request-user">
+                                        <i class="fas fa-user"></i> ${req.userEmail ? req.userEmail.split('@')[0] : 'Anonymous'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="request-footer">
+                                <span class="request-status status-${statusClass}">${req.status || 'Open'}</span>
+                                ${isOwner && req.status !== 'cancelled' && req.status !== 'completed' ? 
+                                    `<button class="cancel-btn" onclick="cancelMaintenanceRequest('${req.id}')">Cancel Request</button>` : 
+                                    ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-wrench"></i>
+                        <p>No maintenance requests yet</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading maintenance requests:', error);
+        }
+    }
+
+    // Cancel maintenance request
+    window.cancelMaintenanceRequest = async function(requestId) {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showToast('❌ Please log in to cancel requests.', 'error');
+            return;
+        }
+
+        // Verify ownership
+        const result = await FirestoreService.getDoc('maintenance_requests', requestId);
+        if (!result.success || !result.data) {
+            showToast('❌ Request not found', 'error');
+            return;
+        }
+
+        const request = result.data;
+        if (request.userId !== user.uid) {
+            showToast('❌ You can only cancel your own requests', 'error');
+            return;
+        }
+
+        if (confirm('Are you sure you want to cancel this maintenance request?')) {
+            const updateResult = await FirestoreService.updateDoc('maintenance_requests', requestId, {
+                status: 'cancelled',
+                cancelledAt: new Date()
+            });
+            
+            if (updateResult.success) {
+                showToast('✅ Request cancelled', 'success');
+                loadMaintenanceRequests();
+            } else {
+                showToast('❌ ' + updateResult.error, 'error');
+            }
+        }
+    };
+
+
+    // Visitor form - Store in Firestore
     if (visitorForm) {
         visitorForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -403,24 +571,120 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const formData = {
-                name: this.querySelector('input[type="text"]').value,
-                purpose: this.querySelector('select').value,
-                date: this.querySelector('input[type="date"]').value,
-                time: this.querySelector('input[type="time"]').value,
+                name: this.querySelector('#visitorName').value,
+                purpose: this.querySelector('#visitorPurpose').value,
+                date: this.querySelector('#visitorDate').value,
+                time: this.querySelector('#visitorTime').value,
+                phone: this.querySelector('#visitorPhone')?.value || '',
+                notes: this.querySelector('#visitorNotes')?.value || '',
                 registeredBy: user.email,
+                registeredByUserId: user.uid,
                 status: 'registered',
                 createdAt: new Date()
             };
 
+            // Validate required fields
+            if (!formData.name || !formData.purpose || !formData.date || !formData.time) {
+                showToast('❌ Please fill in all required fields.', 'error');
+                return;
+            }
+
             FirestoreService.addDoc('visitors', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Visitor registered!', 'success');
+                    showToast('✅ Visitor registered successfully!', 'success');
                     visitorForm.reset();
+                    loadRecentVisitors(); // Refresh the visitor list (visitors page)
+                    loadDashboardVisitors(); // Refresh dashboard widget
                 } else {
                     showToast('❌ Error: ' + result.error, 'error');
                 }
             });
         });
+    }
+
+    // Load recent visitors from Firestore
+    async function loadRecentVisitors() {
+        try {
+            const result = await FirestoreService.getAll('visitors', 'createdAt', 5);
+            const visitorsList = document.getElementById('visitorsList');
+            
+            if (result.success && result.data.length > 0) {
+                if (visitorsList) {
+                    visitorsList.innerHTML = result.data.map(visitor => {
+                        const date = visitor.createdAt?.seconds 
+                            ? new Date(visitor.createdAt.seconds * 1000)
+                            : new Date(visitor.createdAt || Date.now());
+                        
+                        const timeStr = visitor.time || '';
+                        const dateStr = visitor.date || date.toISOString().split('T')[0];
+                        
+                        return `
+                            <div class="visitor-item">
+                                <div class="visitor-info">
+                                    <span class="visitor-icon"><i class="fas fa-user-circle"></i></span>
+                                    <span class="visitor-name">${visitor.name || 'Unknown'}</span>
+                                    <span class="visitor-purpose">
+                                        <i class="fas fa-tag"></i> ${visitor.purpose || 'N/A'}
+                                    </span>
+                                </div>
+                                <span class="visitor-time">${dateStr} ${timeStr ? 'at ' + timeStr : ''}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } else if (visitorsList) {
+                visitorsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>No recent visitors</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading visitors:', error);
+        }
+    }
+
+    // Load recent visitors for dashboard widget
+    async function loadDashboardVisitors() {
+        try {
+            const result = await FirestoreService.getAll('visitors', 'createdAt', 5);
+            const container = document.getElementById('dashboardVisitorsList');
+            if (!container) return;
+
+            if (result.success && result.data.length > 0) {
+                container.innerHTML = result.data.map(visitor => {
+                    const date = visitor.createdAt?.seconds 
+                        ? new Date(visitor.createdAt.seconds * 1000)
+                        : new Date(visitor.createdAt || Date.now());
+                    
+                    const timeStr = visitor.time || '';
+                    const dateStr = visitor.date || date.toISOString().split('T')[0];
+                    
+                    return `
+                        <div class="visitor-item">
+                            <div class="visitor-info">
+                                <span class="visitor-icon"><i class="fas fa-user-circle"></i></span>
+                                <span class="visitor-name">${visitor.name || 'Unknown'}</span>
+                                <span class="visitor-purpose">
+                                    <i class="fas fa-tag"></i> ${visitor.purpose || 'N/A'}
+                                </span>
+                            </div>
+                            <span class="visitor-time">${dateStr} ${timeStr ? 'at ' + timeStr : ''}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>No recent visitors</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading dashboard visitors:', error);
+        }
     }
 
     // Settings forms
@@ -499,5 +763,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Initialize (reservations load after login via loadUserData)
+    // Initialize on page load
+    function init() {
+        const user = firebase.auth().currentUser;
+        if (user) {
+            loadUserData(user);
+        } else {
+            loadRecentVisitors(); // Show visitors for guests
+            loadMaintenanceRequests(); // Show maintenance requests for guests
+        }
+        // Always load maintenance (it's public)
+        if (document.getElementById('maintenanceRequestsList')) {
+            loadMaintenanceRequests();
+        }
+    }
+
+    init();
 });

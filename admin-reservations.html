@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facility Reservations Admin - SCMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin-reservations.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-building"></i>
+                    <span>SCMS Admin</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Reservations</span>
+                </a>
+                <a href="admin-users.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="admin-visitors.html" class="nav-item">
+                    <i class="fas fa-user-check"></i>
+                    <span>Visitors</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Back to Portal</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>Facility Reservations</h1>
+                <div class="user-profile">
+                    <div class="avatar">A</div>
+                    <div class="user-info">
+                        <span class="name">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Filters Bar -->
+                <div class="filters-bar">
+                    <div class="filters-left">
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="statusFilter">
+                                <option value="all">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Facility</label>
+                            <select id="facilityFilter">
+                                <option value="all">All Facilities</option>
+                                <option value="pool">Swimming Pool</option>
+                                <option value="gym">Fitness Center</option>
+                                <option value="tennis">Basketball Court</option>
+                                <option value="function">Function Hall</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Date Range</label>
+                            <input type="date" id="dateFrom" placeholder="From">
+                            <span class="date-separator">to</span>
+                            <input type="date" id="dateTo" placeholder="To">
+                        </div>
+                        <div class="filter-group">
+                            <label>Search</label>
+                            <input type="text" id="searchInput" placeholder="Search by name, email...">
+                        </div>
+                    </div>
+                    <div class="filters-right">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="list" title="List View">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="view-btn" data-view="grid" title="Grid View">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                        </div>
+                        <button class="btn-refresh" id="refreshBtn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalReservations">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="pendingCount">0</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon confirmed"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="confirmedCount">0</span>
+                            <span class="stat-label">Confirmed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cancelled"><i class="fas fa-times-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="cancelledCount">0</span>
+                            <span class="stat-label">Cancelled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservations Container -->
+                <div class="reservations-container">
+                    <!-- List View -->
+                    <div class="reservations-list-view" id="listView">
+                        <div class="list-header">
+                            <div class="list-col col-date">Date</div>
+                            <div class="list-col col-facility">Facility</div>
+                            <div class="list-col col-user">User</div>
+                            <div class="list-col col-time">Time</div>
+                            <div class="list-col col-guests">Guests</div>
+                            <div class="list-col col-status">Status</div>
+                            <div class="list-col col-actions">Actions</div>
+                        </div>
+                        <div class="list-body" id="reservationsList">
+                            <!-- Reservations loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Grid/Thumbnail View -->
+                    <div class="reservations-grid-view hidden" id="gridView">
+                        <div class="grid-header">
+                            <h3>All Reservations</h3>
+                            <div class="grid-count" id="gridCount">0 reservations</div>
+                        </div>
+                        <div class="grid-container" id="reservationsGrid">
+                            <!-- Grid items loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <button class="page-btn" id="prevPage" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="page-numbers" id="pageNumbers"></div>
+                    <button class="page-btn" id="nextPage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal-overlay" id="statusModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Update Reservation Status</h3>
+                <button class="modal-close" id="closeStatusModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="statusForm">
+                    <input type="hidden" id="editReservationId">
+                    <div class="form-group">
+                        <label>Current Status</label>
+                        <input type="text" id="currentStatus" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>New Status</label>
+                        <select id="newStatus" required>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="statusNotes" placeholder="Add notes about this status change..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelStatus">Cancel</button>
+                        <button type="submit" class="btn-save">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firestore-service.js"></script>
+    <script src="admin-reservations.js"></script>
+</body>
+</html>
