@@ -1,29 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
-    const loginForm = document.getElementById('loginForm');
-    const loginOverlay = document.getElementById('loginOverlay');
-    const appContainer = document.getElementById('appContainer');
-    const emailInput = loginForm.querySelector('input[type="email"]');
-    const passwordInput = loginForm.querySelector('input[type="password"]');
-    const togglePasswordBtn = document.querySelector('.toggle-password');
-
-    // Toggle password visibility
-    if (togglePasswordBtn) {
-        togglePasswordBtn.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    }
-
-    // Toast Notification System (must be defined first)
+    // Toast Notification System (defined first for use everywhere)
     window.showToast = function(message, type = 'success', duration = 5000) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
@@ -58,6 +34,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     };
 
+    // DOM Elements
+    const loginForm = document.getElementById('loginForm');
+    const loginOverlay = document.getElementById('loginOverlay');
+    const appContainer = document.getElementById('appContainer');
+    const emailInput = loginForm.querySelector('input[type="email"]');
+    const passwordInput = loginForm.querySelector('input[type="password"]');
+    const togglePasswordBtn = document.querySelector('.toggle-password');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // User profile elements
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const userAvatarEl = document.getElementById('userAvatar');
+
+    // Other DOM elements
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+    const actionBtns = document.querySelectorAll('.action-btn');
+    const towerBtns = document.querySelectorAll('.tower-btn');
+    const floorSlider = document.getElementById('floorSlider');
+    const floorDisplay = document.querySelector('.floor-display');
+    const unitCards = document.querySelectorAll('.unit-card');
+    const bookBtns = document.querySelectorAll('.book-btn');
+    const bookingModal = document.getElementById('bookingModal');
+    const closeModal = document.querySelector('.close-modal');
+    const bookingForm = document.getElementById('bookingForm');
+    const maintenanceForm = document.getElementById('maintenanceForm');
+    const visitorForm = document.getElementById('visitorForm');
+    const settingsForms = document.querySelectorAll('.settings-form');
+    const emergencyTypeBtns = document.querySelectorAll('.emergency-type-btn');
+    const callBtns = document.querySelectorAll('.emergency-call-btn');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const procedureTabs = document.querySelectorAll('.procedure-tab');
+    const procedures = document.querySelectorAll('.procedure');
+
+    // Toggle password visibility
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
+
     // Firebase Auth state observer
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
@@ -67,10 +94,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             loginOverlay.classList.remove('hidden');
             appContainer.classList.remove('active');
+            if (userNameEl) userNameEl.textContent = 'Guest';
+            if (userRoleEl) userRoleEl.textContent = 'Not logged in';
+            if (userAvatarEl) userAvatarEl.textContent = 'G';
         }
     });
 
-    // Handle login form submission
+    // Login form handler
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -82,17 +112,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Show loading state
         const submitBtn = document.getElementById('loginBtn');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Signing in...';
         submitBtn.disabled = true;
 
-        // Sign in with NO persistence (session only, clears on tab close)
+        // Session-only auth (no persistence)
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
-            .then(() => {
-                return firebase.auth().signInWithEmailAndPassword(email, password);
-            })
+            .then(() => firebase.auth().signInWithEmailAndPassword(email, password))
             .then((userCredential) => {
                 const user = userCredential.user;
                 sessionStorage.setItem('userEmail', user.email);
@@ -102,30 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch((error) => {
                 console.error('Login error:', error);
                 let errorMessage = 'Login failed. ';
-                
                 switch(error.code) {
-                    case 'auth/invalid-email':
-                        errorMessage += 'Invalid email address.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage += 'This account has been disabled.';
-                        break;
-                    case 'auth/user-not-found':
-                        errorMessage += 'No account found with this email.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage += 'Incorrect password.';
-                        break;
-                    case 'auth/invalid-credential':
-                        errorMessage += 'Invalid email or password.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage += 'Too many attempts. Please try again later.';
-                        break;
-                    default:
-                        errorMessage += error.message;
+                    case 'auth/invalid-email': errorMessage += 'Invalid email address.'; break;
+                    case 'auth/user-disabled': errorMessage += 'This account has been disabled.'; break;
+                    case 'auth/user-not-found': errorMessage += 'No account found with this email.'; break;
+                    case 'auth/wrong-password': errorMessage += 'Incorrect password.'; break;
+                    case 'auth/invalid-credential': errorMessage += 'Invalid email or password.'; break;
+                    case 'auth/too-many-requests': errorMessage += 'Too many attempts. Please try again later.'; break;
+                    default: errorMessage += error.message;
                 }
-                
                 showToast('❌ ' + errorMessage, 'error');
             })
             .finally(() => {
@@ -133,23 +145,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitBtn.disabled = false;
             });
     });
-});
 
-    // Handle logout
+    // Logout handler
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             firebase.auth().signOut().then(() => {
-                // Clear profile
-                const userNameEl = document.getElementById('userName');
-                const userRoleEl = document.getElementById('userRole');
-                const userAvatarEl = document.getElementById('userAvatar');
-                
                 if (userNameEl) userNameEl.textContent = 'Guest';
                 if (userRoleEl) userRoleEl.textContent = 'Not logged in';
                 if (userAvatarEl) userAvatarEl.textContent = 'G';
-                
-                showToast('Logged out successfully', 'success');
+                showToast('✅ Logged out successfully', 'success');
             }).catch((error) => {
                 showToast('❌ Error signing out: ' + error.message, 'error');
             });
@@ -158,21 +163,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load user data after login
     async function loadUserData(user) {
-        // Update user profile in header
-        const displayName = user.displayName || 
-                           sessionStorage.getItem('userName') || 
-                           user.email.split('@')[0];
+        const displayName = user.displayName || sessionStorage.getItem('userName') || user.email.split('@')[0];
         const initials = displayName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-        
-        const userNameEl = document.getElementById('userName');
-        const userRoleEl = document.getElementById('userRole');
-        const userAvatarEl = document.getElementById('userAvatar');
         
         if (userNameEl) userNameEl.textContent = displayName;
         if (userRoleEl) userRoleEl.textContent = 'Resident';
         if (userAvatarEl) userAvatarEl.textContent = initials;
 
-        // Try to get extended user data from Firestore
         try {
             const result = await FirestoreService.query('users', 'email', '==', user.email);
             if (result.success && result.data.length > 0) {
@@ -190,8 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('User profile not found in Firestore');
         }
 
-        // Load user-specific page data
-        loadAnnouncements();
         loadReservations(user.uid);
     }
 
@@ -199,8 +194,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadReservations(userId) {
         try {
             const result = await FirestoreService.query('reservations', 'userId', '==', userId);
+            const reservationsList = document.querySelector('.reservations-list');
+            
             if (result.success && result.data.length > 0) {
-                const reservationsList = document.querySelector('.reservations-list');
                 if (reservationsList) {
                     reservationsList.innerHTML = result.data.map(res => {
                         const date = res.date ? new Date(res.date) : new Date(res.createdAt?.seconds * 1000 || Date.now());
@@ -222,16 +218,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         `;
                     }).join('');
                 }
-            } else {
-                const reservationsList = document.querySelector('.reservations-list');
-                if (reservationsList) {
-                    reservationsList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-calendar-times"></i>
-                            <p>No reservations yet. Book a facility to get started!</p>
-                        </div>
-                    `;
-                }
+            } else if (reservationsList) {
+                reservationsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No reservations yet. Book a facility to get started!</p>
+                    </div>
+                `;
             }
         } catch (error) {
             console.error('Error loading reservations:', error);
@@ -244,9 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await FirestoreService.deleteDoc('reservations', reservationId);
             if (result.success) {
                 const user = firebase.auth().currentUser;
-                if (user) {
-                    loadReservations(user.uid);
-                }
+                if (user) loadReservations(user.uid);
                 showToast('✅ Reservation cancelled', 'success');
             } else {
                 showToast('❌ Error: ' + result.error, 'error');
@@ -254,81 +245,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Load announcements from Firestore
-    async function loadAnnouncements() {
-        try {
-            const result = await FirestoreService.getAnnouncements(5);
-            if (result.success && result.data.length > 0) {
-                const announcementsList = document.querySelector('.announcements-list');
-                if (announcementsList) {
-                    announcementsList.innerHTML = result.data.map(ann => {
-                        const date = ann.createdAt ? 
-                            new Date(ann.createdAt.seconds * 1000) : 
-                            new Date();
-                        return `
-                            <div class="announcement-card ${ann.tag === 'Urgent' ? 'urgent' : ''}">
-                                <div class="announcement-header">
-                                    <span class="tag ${(ann.tag || 'general').toLowerCase()}">${ann.tag || 'General'}</span>
-                                    <span class="date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                </div>
-                                <h3>${ann.title || 'No title'}</h3>
-                                <p>${ann.content || 'No content'}</p>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            }
-        } catch (error) {
-            console.error('Error loading announcements:', error);
-        }
-    }
-
-    // Navigation handlers (keep existing)
-    const navItems = document.querySelectorAll('.nav-item');
-    const pages = document.querySelectorAll('.page');
-    const actionBtns = document.querySelectorAll('.action-btn');
-    const towerBtns = document.querySelectorAll('.tower-btn');
-    const floorSlider = document.getElementById('floorSlider');
-    const floorDisplay = document.querySelector('.floor-display');
-    const unitCards = document.querySelectorAll('.unit-card');
-    const bookBtns = document.querySelectorAll('.book-btn');
-    const bookingModal = document.getElementById('bookingModal');
-    const closeModal = document.querySelector('.close-modal');
-    const bookingForm = document.getElementById('bookingForm');
-    const maintenanceForm = document.getElementById('maintenanceForm');
-    const visitorForm = document.getElementById('visitorForm');
-    const settingsForms = document.querySelectorAll('.settings-form');
-
+    // Navigation
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             const pageId = this.getAttribute('data-page');
-            
             navItems.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
-            
             pages.forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId + '-page').classList.remove('hidden');
-            
-            if (window.innerWidth < 768) {
-                sidebar.classList.remove('active');
-            }
+            if (window.innerWidth < 768) sidebar.classList.remove('active');
         });
     });
 
     actionBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const pageId = this.getAttribute('data-page');
-            
             navItems.forEach(nav => nav.classList.remove('active'));
             document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
-            
             pages.forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId + '-page').classList.remove('hidden');
-            
-            if (window.innerWidth < 768) {
-                sidebar.classList.remove('active');
-            }
+            if (window.innerWidth < 768) sidebar.classList.remove('active');
         });
     });
 
@@ -372,11 +309,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Booking form with Firestore using current user
+    // Booking form
     if (bookingForm) {
         bookingForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const user = firebase.auth().currentUser;
             if (!user) {
                 showToast('❌ Please log in to make a booking.', 'error');
@@ -398,17 +334,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 createdAt: new Date()
             };
 
-            // Validate date
+            // Validation
             const selectedDate = new Date(formData.date);
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
+            today.setHours(0,0,0,0);
             if (selectedDate < today) {
                 showToast('❌ Cannot book on a past date.', 'error');
                 return;
             }
-
-            // Validate time range
             if (formData.startTime >= formData.endTime) {
                 showToast('❌ End time must be after start time.', 'error');
                 return;
@@ -416,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             FirestoreService.addDoc('reservations', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Booking confirmed! Check your reservations for details.', 'success');
+                    showToast('✅ Booking confirmed!', 'success');
                     bookingModal.classList.remove('active');
                     bookingForm.reset();
                     loadReservations(user.uid);
@@ -427,10 +360,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Maintenance form
     if (maintenanceForm) {
         maintenanceForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const user = firebase.auth().currentUser;
             if (!user) {
                 showToast('❌ Please log in to submit a request.', 'error');
@@ -450,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             FirestoreService.addDoc('maintenance_requests', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Maintenance request submitted successfully!', 'success');
+                    showToast('✅ Maintenance request submitted!', 'success');
                     maintenanceForm.reset();
                 } else {
                     showToast('❌ Error: ' + result.error, 'error');
@@ -459,10 +392,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Visitor form
     if (visitorForm) {
         visitorForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const user = firebase.auth().currentUser;
             if (!user) {
                 showToast('❌ Please log in to register a visitor.', 'error');
@@ -481,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             FirestoreService.addDoc('visitors', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Visitor registered successfully!', 'success');
+                    showToast('✅ Visitor registered!', 'success');
                     visitorForm.reset();
                 } else {
                     showToast('❌ Error: ' + result.error, 'error');
@@ -490,13 +423,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Settings forms
     settingsForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            showToast('✅ Settings saved successfully!', 'success');
+            showToast('✅ Settings saved!', 'success');
         });
     });
 
+    // 3D viewer controls
     const rotateBtns = document.querySelectorAll('.rotate-btn');
     rotateBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -514,22 +449,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (viewer3d) {
                 const currentScale = viewer3d.style.transform.match(/scale\(([^)]+)\)/);
                 let scale = currentScale ? parseFloat(currentScale[1]) : 1;
-                
-                if (this.querySelector('.fa-plus')) {
-                    scale = Math.min(scale + 0.1, 1.5);
-                } else {
-                    scale = Math.max(scale - 0.1, 0.5);
-                }
-                
+                scale = this.querySelector('.fa-plus') ? Math.min(scale + 0.1, 1.5) : Math.max(scale - 0.1, 0.5);
                 viewer3d.style.transform = 'scale(' + scale + ')';
             }
         });
     });
 
+    // Window and keyboard events
     window.addEventListener('resize', function() {
-        if (window.innerWidth >= 768) {
-            sidebar.classList.remove('active');
-        }
+        if (window.innerWidth >= 768) sidebar.classList.remove('active');
     });
 
     document.addEventListener('keydown', function(e) {
@@ -538,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const categoryBtns = document.querySelectorAll('.category-btn');
+    // Category filter buttons
     categoryBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             categoryBtns.forEach(b => b.classList.remove('active'));
@@ -546,8 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    const procedureTabs = document.querySelectorAll('.procedure-tab');
-    const procedures = document.querySelectorAll('.procedure');
+    // Emergency procedure tabs
     procedureTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             procedureTabs.forEach(t => t.classList.remove('active'));
@@ -558,52 +485,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    const emergencyTypeBtns = document.querySelectorAll('.emergency-type-btn');
+    // Emergency buttons
     emergencyTypeBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const issue = this.querySelector('span').textContent;
-            showToast('🚨 Reporting: ' + issue + '. Our emergency team will be notified.', 'warning');
+            showToast('🚨 Reporting: ' + issue + '. Team notified.', 'warning');
         });
     });
 
-    const callBtns = document.querySelectorAll('.emergency-call-btn');
     callBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             showToast('📞 Dialing emergency contact...', 'info');
         });
     });
 
-    // Toast Notification System
-    window.showToast = function(message, type = 'success', duration = 5000) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        
-        const icons = {
-            success: 'fa-check-circle',
-            error: 'fa-exclamation-circle',
-            warning: 'fa-exclamation-triangle',
-            info: 'fa-info-circle'
-        };
-
-        toast.innerHTML = `
-            <i class="fas ${icons[type]} toast-icon"></i>
-            <span class="toast-message">${message}</span>
-            <button class="toast-close" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add('hiding');
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
-                }
-            }, 300);
-        }, duration);
-    };
+    // Initialize (reservations load after login via loadUserData)
+});

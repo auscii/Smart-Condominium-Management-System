@@ -33,18 +33,18 @@
                 <form id="loginForm">
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="Email Address" required>
+                        <input type="email" id="email" placeholder="Email Address" value="admin@tester.com" required>
                     </div>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="Password" required>
+                        <input type="password" id="password" placeholder="Password" value="Qwerty123!" required>
                         <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
                     </div>
-                    <div class="remember-forgot">
+                    <!-- <div class="remember-forgot">
                         <a href="#" id="forgotPassword">Forgot password?</a>
-                    </div>
+                    </div> -->
                     <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
-                    <p class="signup-link">Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
+                    <!-- <p class="signup-link">Don't have an account? <a href="#" id="signupLink">Sign up</a></p> -->
                 </form>
             </div>
         </div>
@@ -72,22 +72,18 @@
                     <i class="fas fa-calendar-check"></i>
                     <span>Facility Reservation</span>
                 </a>
-                <a href="#" class="nav-item" data-page="announcements">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Announcements</span>
-                </a>
-                <a href="#" class="nav-item" data-page="maintenance">
-                    <i class="fas fa-tools"></i>
-                    <span>Maintenance</span>
-                </a>
+                 <a href="#" class="nav-item" data-page="maintenance">
+                     <i class="fas fa-tools"></i>
+                     <span>Maintenance</span>
+                 </a>
                 <!-- <a href="#" class="nav-item" data-page="payments">
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </a> -->
-                <a href="#" class="nav-item" data-page="marketplace">
+                <!-- <a href="#" class="nav-item" data-page="marketplace">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Marketplace</span>
-                </a>
+                </a> -->
                 <a href="#" class="nav-item" data-page="events">
                     <i class="fas fa-calendar-day"></i>
                     <span>Events</span>
@@ -114,7 +110,7 @@
         </aside>
 
         <main class="main-content">
-            <header class="top-bar">
+            <!-- <header class="top-bar">
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -135,13 +131,13 @@
                         </div>
                     </div>
                 </div>
-            </header>
+            </header> -->
 
             <div class="content-area">
                 <div class="page" id="dashboard-page">
                     <div class="page-header">
                         <h1>Dashboard</h1>
-                        <p>Welcome back, John! Here's the condominium overview.</p>
+                        <p>Welcome back, Admin! Here's the condominium overview.</p>
                     </div>
                     <div class="stats-grid">
                         <!-- <div class="stat-card">
@@ -163,13 +159,6 @@
                             <div class="stat-info">
                                 <span class="stat-value">1</span>
                                 <span class="stat-label">Pending Maintenance</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon"><i class="fas fa-peso-sign"></i></div>
-                            <div class="stat-info">
-                                <span class="stat-value">₱500,000.00</span>
-                                <span class="stat-label">Total Sales</span>
                             </div>
                         </div>
                     </div>
@@ -196,8 +185,8 @@
                                 <div class="activity-item">
                                     <div class="activity-icon info"><i class="fas fa-bullhorn"></i></div>
                                     <div class="activity-details">
-                                        <span class="activity-title">New Announcement</span>
-                                        <span class="activity-time">Pool maintenance scheduled for Friday</span>
+                                        <span class="activity-title">Added new visitor</span>
+                                        <span class="activity-time">John Doe checked in for a visit</span>
                                     </div>
                                 </div>
                             </div>
@@ -209,19 +198,19 @@
                             <div class="card-body">
                                 <button class="action-btn" data-page="facilities">
                                     <i class="fas fa-calendar-plus"></i>
-                                    <span>Book Facility</span>
+                                    <span>Facility Reservations</span>
                                 </button>
                                 <button class="action-btn" data-page="maintenance">
                                     <i class="fas fa-wrench"></i>
-                                    <span>Request Repair</span>
+                                    <span>Maintenance Module</span>
                                 </button>
                                 <button class="action-btn" data-page="units">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Unit</span>
+                                    <i class="fas fa-users"></i>
+                                    <span>Visitors</span>
                                 </button>
                                 <button class="action-btn" data-page="payments">
-                                    <i class="fas fa-file-invoice"></i>
-                                    <span>Pay Bills</span>
+                                    <i class="fas fa-cog"></i>
+                                    <span>Settings</span>
                                 </button>
                             </div>
                         </div>
@@ -434,39 +423,6 @@
                                 <span class="reservation-status confirmed">Confirmed</span>
                                 <button class="cancel-btn">Cancel</button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="page hidden" id="announcements-page">
-                    <div class="page-header">
-                        <h1>Announcements</h1>
-                        <p>Stay updated with the latest news and updates</p>
-                    </div>
-                    <div class="announcements-list">
-                        <div class="announcement-card urgent">
-                            <div class="announcement-header">
-                                <span class="tag urgent">Urgent</span>
-                                <span class="date">Apr 14, 2026</span>
-                            </div>
-                            <h3>Pool Maintenance Notice</h3>
-                            <p>The main swimming pool will be closed for maintenance from April 18-20, 2026. Please use the kiddie pool during this time.</p>
-                        </div>
-                        <div class="announcement-card">
-                            <div class="announcement-header">
-                                <span class="tag">General</span>
-                                <span class="date">Apr 12, 2026</span>
-                            </div>
-                            <h3>New Security Protocol</h3>
-                            <p>Starting April 20, all visitors must register at the security office. Please inform your guests accordingly.</p>
-                        </div>
-                        <div class="announcement-card">
-                            <div class="announcement-header">
-                                <span class="tag">Event</span>
-                                <span class="date">Apr 10, 2026</span>
-                            </div>
-                            <h3>Earthquake Drill Scheduled</h3>
-                            <p>A mandatory earthquake drill will be conducted on April 25, 2026 at 10:00 AM. All residents are requested to participate.</p>
                         </div>
                     </div>
                 </div>
