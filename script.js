@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (userNameEl) userNameEl.textContent = 'Guest';
                 if (userRoleEl) userRoleEl.textContent = 'Not logged in';
                 if (userAvatarEl) userAvatarEl.textContent = 'G';
-                showToast('✅ Logged out successfully', 'success');
+                showToast('Logged out successfully', 'success');
             }).catch((error) => {
                 showToast('❌ Error signing out: ' + error.message, 'error');
             });
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (updateResult.success) {
-                showToast('✅ Reservation cancelled', 'success');
+                showToast('Reservation cancelled', 'success');
                 loadReservations();
             } else {
                 showToast('❌ ' + updateResult.error, 'error');
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             FirestoreService.addDoc('reservations', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Booking confirmed!', 'success');
+                    showToast('Booking confirmed!', 'success');
                     bookingModal.classList.remove('active');
                     bookingForm.reset();
         loadReservations();
@@ -417,7 +417,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (maintenanceForm) {
         maintenanceForm.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            document.getElementById('btn-loader').style.display = 'block';
+            // document.querySelector('#btn-loader').style.display = 'block';
+
             const user = firebase.auth().currentUser;
+
             if (!user) {
                 showToast('❌ Please log in to submit a request.', 'error');
                 return;
@@ -437,12 +442,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validate required fields
             if (!formData.category || !formData.priority || !formData.subject || !formData.description) {
                 showToast('❌ Please fill in all required fields.', 'error');
+                document.getElementById('btn-loader').style.display = 'none';
                 return;
             }
 
             FirestoreService.addDoc('maintenance_requests', formData).then(result => {
+                document.getElementById('btn-loader').style.display = 'none';
+
                 if (result.success) {
-                    showToast('✅ Maintenance request submitted successfully!', 'success');
+                    showToast('Maintenance request submitted successfully!', 'success');
                     maintenanceForm.reset();
                     loadMaintenanceRequests(); // Refresh the requests list
                 } else {
@@ -551,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (updateResult.success) {
-                showToast('✅ Request cancelled', 'success');
+                showToast('Request cancelled', 'success');
                 loadMaintenanceRequests();
             } else {
                 showToast('❌ ' + updateResult.error, 'error');
@@ -591,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             FirestoreService.addDoc('visitors', formData).then(result => {
                 if (result.success) {
-                    showToast('✅ Visitor registered successfully!', 'success');
+                    showToast('Visitor registered successfully!', 'success');
                     visitorForm.reset();
                     loadRecentVisitors(); // Refresh the visitor list (visitors page)
                     loadDashboardVisitors(); // Refresh dashboard widget
@@ -691,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
     settingsForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            showToast('✅ Settings saved!', 'success');
+            showToast('Settings saved!', 'success');
         });
     });
 
