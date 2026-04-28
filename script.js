@@ -1,14 +1,292 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
     const loginForm = document.getElementById('loginForm');
     const loginOverlay = document.getElementById('loginOverlay');
     const appContainer = document.getElementById('appContainer');
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const closeSidebar = document.getElementById('closeSidebar');
+    const emailInput = loginForm.querySelector('input[type="email"]');
+    const passwordInput = loginForm.querySelector('input[type="password"]');
+    const togglePasswordBtn = document.querySelector('.toggle-password');
+
+    // Toggle password visibility
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
+
+    // Toast Notification System (must be defined first)
+    window.showToast = function(message, type = 'success', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type]} toast-icon"></i>
+            <span class="toast-message">${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 300);
+        }, duration);
+    };
+
+    // Firebase Auth state observer
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            loginOverlay.classList.add('hidden');
+            appContainer.classList.add('active');
+            loadUserData(user);
+        } else {
+            loginOverlay.classList.remove('hidden');
+            appContainer.classList.remove('active');
+        }
+    });
+
+    // Handle login form submission
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            showToast('❌ Please enter both email and password.', 'error');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = document.getElementById('loginBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Signing in...';
+        submitBtn.disabled = true;
+
+        // Sign in with NO persistence (session only, clears on tab close)
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+            .then(() => {
+                return firebase.auth().signInWithEmailAndPassword(email, password);
+            })
+            .then((userCredential) => {
+                const user = userCredential.user;
+                sessionStorage.setItem('userEmail', user.email);
+                sessionStorage.setItem('userName', user.displayName || email.split('@')[0]);
+                showToast('Login successful! Welcome back.', 'success');
+            })
+            .catch((error) => {
+                console.error('Login error:', error);
+                let errorMessage = 'Login failed. ';
+                
+                switch(error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage += 'Invalid email address.';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage += 'This account has been disabled.';
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage += 'No account found with this email.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage += 'Incorrect password.';
+                        break;
+                    case 'auth/invalid-credential':
+                        errorMessage += 'Invalid email or password.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage += 'Too many attempts. Please try again later.';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showToast('❌ ' + errorMessage, 'error');
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+    });
+});
+
+    // Handle logout
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                // Clear profile
+                const userNameEl = document.getElementById('userName');
+                const userRoleEl = document.getElementById('userRole');
+                const userAvatarEl = document.getElementById('userAvatar');
+                
+                if (userNameEl) userNameEl.textContent = 'Guest';
+                if (userRoleEl) userRoleEl.textContent = 'Not logged in';
+                if (userAvatarEl) userAvatarEl.textContent = 'G';
+                
+                showToast('Logged out successfully', 'success');
+            }).catch((error) => {
+                showToast('❌ Error signing out: ' + error.message, 'error');
+            });
+        });
+    }
+
+    // Load user data after login
+    async function loadUserData(user) {
+        // Update user profile in header
+        const displayName = user.displayName || 
+                           sessionStorage.getItem('userName') || 
+                           user.email.split('@')[0];
+        const initials = displayName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+        
+        const userNameEl = document.getElementById('userName');
+        const userRoleEl = document.getElementById('userRole');
+        const userAvatarEl = document.getElementById('userAvatar');
+        
+        if (userNameEl) userNameEl.textContent = displayName;
+        if (userRoleEl) userRoleEl.textContent = 'Resident';
+        if (userAvatarEl) userAvatarEl.textContent = initials;
+
+        // Try to get extended user data from Firestore
+        try {
+            const result = await FirestoreService.query('users', 'email', '==', user.email);
+            if (result.success && result.data.length > 0) {
+                const userData = result.data[0];
+                if (userNameEl && userData.unitNumber) {
+                    userNameEl.textContent = `Unit ${userData.unitNumber}`;
+                    userAvatarEl.textContent = userData.unitNumber.substring(0,2).toUpperCase();
+                }
+                if (userRoleEl && userData.role) {
+                    userRoleEl.textContent = userData.role;
+                }
+                sessionStorage.setItem('userId', userData.id);
+            }
+        } catch (error) {
+            console.log('User profile not found in Firestore');
+        }
+
+        // Load user-specific page data
+        loadAnnouncements();
+        loadReservations(user.uid);
+    }
+
+    // Load user's reservations from Firestore
+    async function loadReservations(userId) {
+        try {
+            const result = await FirestoreService.query('reservations', 'userId', '==', userId);
+            if (result.success && result.data.length > 0) {
+                const reservationsList = document.querySelector('.reservations-list');
+                if (reservationsList) {
+                    reservationsList.innerHTML = result.data.map(res => {
+                        const date = res.date ? new Date(res.date) : new Date(res.createdAt?.seconds * 1000 || Date.now());
+                        return `
+                            <div class="reservation-item">
+                                <div class="reservation-date">
+                                    <span class="day">${date.getDate()}</span>
+                                    <span class="month">${date.toLocaleString('default', { month: 'short' })}</span>
+                                </div>
+                                <div class="reservation-details">
+                                    <h4>${res.facilityName || res.facility || 'Facility'}</h4>
+                                    <p>${res.startTime || ''} - ${res.endTime || ''}</p>
+                                </div>
+                                <span class="reservation-status ${res.status || 'pending'}">${res.status || 'Pending'}</span>
+                                ${res.status !== 'cancelled' ? 
+                                    `<button class="cancel-btn" onclick="cancelReservation('${res.id}')">Cancel</button>` : 
+                                    ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } else {
+                const reservationsList = document.querySelector('.reservations-list');
+                if (reservationsList) {
+                    reservationsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No reservations yet. Book a facility to get started!</p>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading reservations:', error);
+        }
+    }
+
+    // Cancel reservation
+    window.cancelReservation = async function(reservationId) {
+        if (confirm('Are you sure you want to cancel this reservation?')) {
+            const result = await FirestoreService.deleteDoc('reservations', reservationId);
+            if (result.success) {
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    loadReservations(user.uid);
+                }
+                showToast('✅ Reservation cancelled', 'success');
+            } else {
+                showToast('❌ Error: ' + result.error, 'error');
+            }
+        }
+    };
+
+    // Load announcements from Firestore
+    async function loadAnnouncements() {
+        try {
+            const result = await FirestoreService.getAnnouncements(5);
+            if (result.success && result.data.length > 0) {
+                const announcementsList = document.querySelector('.announcements-list');
+                if (announcementsList) {
+                    announcementsList.innerHTML = result.data.map(ann => {
+                        const date = ann.createdAt ? 
+                            new Date(ann.createdAt.seconds * 1000) : 
+                            new Date();
+                        return `
+                            <div class="announcement-card ${ann.tag === 'Urgent' ? 'urgent' : ''}">
+                                <div class="announcement-header">
+                                    <span class="tag ${(ann.tag || 'general').toLowerCase()}">${ann.tag || 'General'}</span>
+                                    <span class="date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+                                <h3>${ann.title || 'No title'}</h3>
+                                <p>${ann.content || 'No content'}</p>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading announcements:', error);
+        }
+    }
+
+    // Navigation handlers (keep existing)
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.page');
     const actionBtns = document.querySelectorAll('.action-btn');
-    const logoutBtn = document.getElementById('logoutBtn');
     const towerBtns = document.querySelectorAll('.tower-btn');
     const floorSlider = document.getElementById('floorSlider');
     const floorDisplay = document.querySelector('.floor-display');
@@ -20,20 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const maintenanceForm = document.getElementById('maintenanceForm');
     const visitorForm = document.getElementById('visitorForm');
     const settingsForms = document.querySelectorAll('.settings-form');
-
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        loginOverlay.classList.add('hidden');
-        appContainer.classList.add('active');
-    });
-
-    menuToggle.addEventListener('click', function() {
-        sidebar.classList.add('active');
-    });
-
-    closeSidebar.addEventListener('click', function() {
-        sidebar.classList.remove('active');
-    });
 
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
@@ -68,12 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        appContainer.classList.remove('active');
-        loginOverlay.classList.remove('hidden');
-    });
-
     towerBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             towerBtns.forEach(b => b.classList.remove('active'));
@@ -97,6 +355,8 @@ document.addEventListener('DOMContentLoaded', function() {
     bookBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             bookingModal.classList.add('active');
+            bookBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
         });
     });
 
@@ -112,33 +372,128 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    bookingForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Booking confirmed! Check your reservations for details.');
-        bookingModal.classList.remove('active');
-        bookingForm.reset();
-    });
+    // Booking form with Firestore using current user
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showToast('❌ Please log in to make a booking.', 'error');
+                return;
+            }
+
+            const selectedBtn = document.querySelector('.book-btn.active');
+            const formData = {
+                facility: selectedBtn?.dataset.facility || 'Unknown',
+                facilityName: selectedBtn?.dataset.facilityName || selectedBtn?.dataset.facility || 'Unknown Facility',
+                date: this.querySelector('input[type="date"]').value,
+                startTime: this.querySelectorAll('input[type="time"]')[0]?.value || '',
+                endTime: this.querySelectorAll('input[type="time"]')[1]?.value || '',
+                guests: parseInt(this.querySelector('input[type="number"]').value) || 1,
+                specialRequests: this.querySelector('textarea').value || '',
+                status: 'pending',
+                userId: user.uid,
+                userEmail: user.email,
+                createdAt: new Date()
+            };
+
+            // Validate date
+            const selectedDate = new Date(formData.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                showToast('❌ Cannot book on a past date.', 'error');
+                return;
+            }
+
+            // Validate time range
+            if (formData.startTime >= formData.endTime) {
+                showToast('❌ End time must be after start time.', 'error');
+                return;
+            }
+
+            FirestoreService.addDoc('reservations', formData).then(result => {
+                if (result.success) {
+                    showToast('✅ Booking confirmed! Check your reservations for details.', 'success');
+                    bookingModal.classList.remove('active');
+                    bookingForm.reset();
+                    loadReservations(user.uid);
+                } else {
+                    showToast('❌ Error: ' + result.error, 'error');
+                }
+            });
+        });
+    }
 
     if (maintenanceForm) {
         maintenanceForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Maintenance request submitted successfully!');
-            maintenanceForm.reset();
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showToast('❌ Please log in to submit a request.', 'error');
+                return;
+            }
+
+            const formData = {
+                category: this.querySelector('select').value,
+                priority: this.querySelectorAll('select')[1].value,
+                subject: this.querySelector('input[type="text"]').value,
+                description: this.querySelector('textarea').value,
+                status: 'open',
+                userId: user.uid,
+                userEmail: user.email,
+                createdAt: new Date()
+            };
+
+            FirestoreService.addDoc('maintenance_requests', formData).then(result => {
+                if (result.success) {
+                    showToast('✅ Maintenance request submitted successfully!', 'success');
+                    maintenanceForm.reset();
+                } else {
+                    showToast('❌ Error: ' + result.error, 'error');
+                }
+            });
         });
     }
 
     if (visitorForm) {
         visitorForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Visitor registered successfully!');
-            visitorForm.reset();
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showToast('❌ Please log in to register a visitor.', 'error');
+                return;
+            }
+
+            const formData = {
+                name: this.querySelector('input[type="text"]').value,
+                purpose: this.querySelector('select').value,
+                date: this.querySelector('input[type="date"]').value,
+                time: this.querySelector('input[type="time"]').value,
+                registeredBy: user.email,
+                status: 'registered',
+                createdAt: new Date()
+            };
+
+            FirestoreService.addDoc('visitors', formData).then(result => {
+                if (result.success) {
+                    showToast('✅ Visitor registered successfully!', 'success');
+                    visitorForm.reset();
+                } else {
+                    showToast('❌ Error: ' + result.error, 'error');
+                }
+            });
         });
     }
 
     settingsForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Settings saved successfully!');
+            showToast('✅ Settings saved successfully!', 'success');
         });
     });
 
@@ -207,14 +562,48 @@ document.addEventListener('DOMContentLoaded', function() {
     emergencyTypeBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const issue = this.querySelector('span').textContent;
-            alert('Reporting: ' + issue + '. Our emergency team will be notified.');
+            showToast('🚨 Reporting: ' + issue + '. Our emergency team will be notified.', 'warning');
         });
     });
 
     const callBtns = document.querySelectorAll('.emergency-call-btn');
     callBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            alert('Dialing emergency contact...');
+            showToast('📞 Dialing emergency contact...', 'info');
         });
     });
-});
+
+    // Toast Notification System
+    window.showToast = function(message, type = 'success', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type]} toast-icon"></i>
+            <span class="toast-message">${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 300);
+        }, duration);
+    };

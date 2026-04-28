@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Facilities - Smart Condominium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="customer-styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>SCMS</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Back to Portal</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1>Book a Facility</h1>
+                <p>Reserve amenities for your personal or community events</p>
+            </div>
+
+            <!-- Facilities Grid -->
+            <section class="facilities-section">
+                <h2>Available Facilities</h2>
+                <div class="facilities-grid" id="facilitiesGrid">
+                    <!-- Facilities will be loaded from Firestore -->
+                    <div class="facility-card" data-facility="pool">
+                        <div class="facility-icon pool">
+                            <i class="fas fa-swimming-pool"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Swimming Pool</h3>
+                            <p>Outdoor rooftop pool with stunning city views. Perfect for relaxation and recreation.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 20 guests</span>
+                                <span><i class="fas fa-clock"></i> 6AM - 10PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="pool" data-name="Swimming Pool">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="gym">
+                        <div class="facility-icon gym">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Fitness Center</h3>
+                            <p>State-of-the-art equipment with cardio and weight training zones.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 15 guests</span>
+                                <span><i class="fas fa-clock"></i> 24/7 Access</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="gym" data-name="Fitness Center">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="tennis">
+                        <div class="facility-icon tennis">
+                            <i class="fas fa-basketball-ball"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Basketball Court</h3>
+                            <p>Full-sized indoor court with professional lighting for evening games.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 10 players</span>
+                                <span><i class="fas fa-clock"></i> 6AM - 10PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="tennis" data-name="Basketball Court">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="function">
+                        <div class="facility-icon function">
+                            <i class="fas fa-people-roof"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Function Hall</h3>
+                            <p>Spacious hall ideal for parties, meetings, and community gatherings.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 100 guests</span>
+                                <span><i class="fas fa-clock"></i> 8AM - 11PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="function" data-name="Function Hall">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Reservations -->
+            <section class="reservations-section">
+                <h2>My Reservations</h2>
+                <div class="reservations-list" id="reservationsList">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No reservations yet. Book a facility to get started!</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <button class="modal-close" id="closeModal">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="modal-title">Book <span id="modalFacilityName">Facility</span></h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startTime">Start Time</label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endTime">End Time</label>
+                        <input type="time" id="endTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="guests">Number of Guests</label>
+                    <input type="number" id="guests" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="specialRequests">Special Requests (Optional)</label>
+                    <textarea id="specialRequests" placeholder="Any special requirements..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase & Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firestore-service.js"></script>
+    <script src="customer-script.js"></script>
+</body>
+</html>

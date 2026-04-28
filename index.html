@@ -33,18 +33,18 @@
                 <form id="loginForm">
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" placeholder="Email Address" value="resident@condo.com" required>
+                        <input type="email" id="email" placeholder="Email Address" required>
                     </div>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Password" value="password123" required>
+                        <input type="password" id="password" placeholder="Password" required>
                         <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
                     </div>
                     <div class="remember-forgot">
-                        <label><input type="checkbox" checked> Remember me</label>
-                        <a href="#">Forgot password?</a>
+                        <a href="#" id="forgotPassword">Forgot password?</a>
                     </div>
-                    <button type="submit" class="login-btn">Sign In</button>
+                    <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+                    <p class="signup-link">Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
                 </form>
             </div>
         </div>
@@ -127,11 +127,11 @@
                         <i class="fas fa-bell"></i>
                         <span class="badge">3</span>
                     </button>
-                    <div class="user-profile">
-                        <div class="avatar">JD</div>
+                     <div class="user-profile" id="userProfile">
+                        <div class="avatar" id="userAvatar">G</div>
                         <div class="user-info">
-                            <span class="name">John Doe</span>
-                            <span class="role">Unit Owner</span>
+                            <span class="name" id="userName">Guest</span>
+                            <span class="role" id="userRole">Not logged in</span>
                         </div>
                     </div>
                 </div>
@@ -340,7 +340,7 @@
                                             <span><i class="fas fa-users"></i> Max 20</span>
                                             <span><i class="fas fa-clock"></i> 6AM-10PM</span>
                                         </div>
-                                        <button class="book-btn" data-facility="pool">Book Now</button>
+                                         <button class="book-btn" data-facility="pool" data-facility-name="Swimming Pool">Book Now</button>
                                     </div>
                                 </div>
                                 <div class="facility-card">
@@ -354,7 +354,7 @@
                                             <span><i class="fas fa-users"></i> Max 15</span>
                                             <span><i class="fas fa-clock"></i> 24/7</span>
                                         </div>
-                                        <button class="book-btn" data-facility="gym">Book Now</button>
+                                         <button class="book-btn" data-facility="gym" data-facility-name="Fitness Center">Book Now</button>
                                     </div>
                                 </div>
                                 <div class="facility-card">
@@ -368,7 +368,7 @@
                                             <span><i class="fas fa-users"></i> Max 10</span>
                                             <span><i class="fas fa-clock"></i> 6AM-10PM</span>
                                         </div>
-                                        <button class="book-btn" data-facility="tennis">Book Now</button>
+                                         <button class="book-btn" data-facility="tennis" data-facility-name="Basketball Court">Book Now</button>
                                     </div>
                                 </div>
                             </div>
@@ -387,7 +387,7 @@
                                             <span><i class="fas fa-users"></i> Max 100</span>
                                             <span><i class="fas fa-clock"></i> 8AM-11PM</span>
                                         </div>
-                                        <button class="book-btn" data-facility="function">Book Now</button>
+                                         <button class="book-btn" data-facility="function" data-facility-name="Function Hall">Book Now</button>
                                     </div>
                                 </div>
                                 <!-- <div class="facility-card">
@@ -1114,6 +1114,14 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firestore-service.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
