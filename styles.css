@@ -2520,6 +2520,7 @@ body {
     padding: 20px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
+    margin-left: 50px;
 }
 
 .calendar-header {
@@ -2587,10 +2588,72 @@ body {
     color: white;
 }
 
+.calendar-date.today {
+    background: #10b981;
+    color: white;
+    position: relative;
+}
+
+.calendar-date.past {
+    color: var(--text-muted);
+    opacity: 0.5;
+    cursor: default;
+}
+
+.calendar-date.past:hover {
+    background: transparent;
+}
+
+/* Calendar tooltips */
+.calendar-date.event-day {
+    position: relative;
+}
+
+.calendar-date.event-day::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--secondary);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: var(--shadow-lg);
+    font-family: 'Outfit', sans-serif;
+}
+
+.calendar-date.event-day:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-12px);
+}
+
+.calendar-date.event-day:last-child::after {
+    right: 0;
+    left: auto;
+    transform: translateX(0) translateY(-8px);
+}
+
+.calendar-date.event-day:last-child:hover::after {
+    transform: translateX(0) translateY(-12px);
+}
+
 .events-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    margin-left: 50px;
 }
 
 .events-list h3 {

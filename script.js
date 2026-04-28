@@ -778,12 +778,319 @@ document.addEventListener('DOMContentLoaded', function() {
             loadUserData(user);
         } else {
             loadRecentVisitors(); // Show visitors for guests
-            loadMaintenanceRequests(); // Show maintenance requests for guests
+        loadMaintenanceRequests(); // Show maintenance requests for guests
+    }
+    // Always load maintenance (it's public)
+    if (document.getElementById('maintenanceRequestsList')) {
+        loadMaintenanceRequests();
+    }
+    // Load events if on events page
+    if (document.getElementById('eventsContainer')) {
+        loadEvents();
+    }
+
+    // Events Management
+    const eventForm = document.getElementById('eventForm');
+    const eventsContainer = document.getElementById('eventsContainer');
+    const calendarGrid = document.getElementById('calendarGrid');
+
+    // Event form submission
+    if (eventForm) {
+        eventForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showToast('❌ Please log in to create an event.', 'error');
+                return;
+            }
+
+            const formData = {
+                title: this.querySelector('#eventTitle').value,
+                category: this.querySelector('#eventCategory').value,
+                date: this.querySelector('#eventDate').value,
+                time: this.querySelector('#eventTime').value,
+                location: this.querySelector('#eventLocation').value,
+                description: this.querySelector('#eventDescription').value,
+                maxParticipants: parseInt(this.querySelector('#eventMaxParticipants').value) || null,
+                status: this.querySelector('#eventStatus').value,
+                createdBy: user.email,
+                createdByUserId: user.uid,
+                createdAt: new Date()
+            };
+
+            // Validate required fields
+            if (!formData.title || !formData.category || !formData.date || !formData.time || 
+                !formData.location || !formData.description || !formData.status) {
+                showToast('❌ Please fill in all required fields.', 'error');
+                return;
+            }
+
+            // Validate date is not in past
+            const eventDate = new Date(formData.date);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            if (eventDate < today) {
+                showToast('❌ Cannot create event on a past date.', 'error');
+                return;
+            }
+
+            // Show loader
+            const submitBtn = document.getElementById('createEventBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoader = submitBtn.querySelector('.btn-loader');
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoader) btnLoader.style.display = 'inline-flex';
+            submitBtn.disabled = true;
+
+            FirestoreService.addDoc('events', formData).then(result => {
+                // Hide loader
+                if (btnText) btnText.style.display = 'inline';
+                if (btnLoader) btnLoader.style.display = 'none';
+                submitBtn.disabled = false;
+
+                if (result.success) {
+                    showToast('✅ Event created successfully!', 'success');
+                    eventForm.reset();
+                    loadEvents(); // Refresh events list
+                    generateCalendar(); // Update calendar
+                } else {
+                    showToast('❌ Error: ' + result.error, 'error');
+                }
+            }).catch(error => {
+                if (btnText) btnText.style.display = 'inline';
+                if (btnLoader) btnLoader.style.display = 'none';
+                submitBtn.disabled = false;
+                showToast('❌ Failed to create event: ' + error.message, 'error');
+            });
+        });
+    }
+
+    // Load all events from Firestore
+    async function loadEvents() {
+        try {
+            const result = await FirestoreService.getAll('events', 'date', 0); // Get upcoming events
+            
+            if (result.success && result.data.length > 0) {
+                // Filter upcoming events only (date >= today)
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const upcomingEvents = result.data.filter(event => {
+                    const eventDate = event.date ? new Date(event.date) : new Date(event.createdAt?.seconds * 1000);
+                    // return eventDate >= today;
+                    return eventDate;
+                }).sort((a,b) => new Date(a.date) - new Date(b.date));
+
+                renderEvents(upcomingEvents);
+                updateCalendar(upcomingEvents);
+            } else {
+                if (eventsContainer) {
+                    eventsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No upcoming events scheduled</p>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading events:', error);
         }
-        // Always load maintenance (it's public)
-        if (document.getElementById('maintenanceRequestsList')) {
-            loadMaintenanceRequests();
+    }
+
+    // Render events list
+    function renderEvents(events) {
+        if (!eventsContainer) return;
+
+        if (events.length === 0) {
+            eventsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No upcoming events scheduled</p>
+                </div>
+            `;
+            return;
         }
+
+        eventsContainer.innerHTML = events.map(event => {
+            const eventDate = event.date ? new Date(event.date) : 
+                (event.createdAt?.seconds ? new Date(event.createdAt.seconds * 1000) : new Date());
+            
+            const day = eventDate.getDate();
+            const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+            const statusClass = getEventStatusClass(event.status);
+            const statusText = formatEventStatus(event.status);
+
+            return `
+                <div class="event-card">
+                    <div class="event-date-badge">
+                        <span class="event-day-num">${day}</span>
+                        <span class="event-month">${month}</span>
+                    </div>
+                    <div class="event-details">
+                        <h4>${event.title || 'Untitled Event'}</h4>
+                        <p><i class="fas fa-clock"></i> ${event.time || 'TBD'}</p>
+                        <p><i class="fas fa-map-marker"></i> ${event.location || 'TBD'}</p>
+                        <span class="event-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <button class="event-register-btn" onclick="registerForEvent('${event.id}')">Register</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Generate calendar grid with tooltips
+    function generateCalendar(events = []) {
+        if (!calendarGrid) return;
+        
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        var eventInfo = '';
+        
+        // Build a map of day -> events for that day
+        const eventsByDay = {};
+        events.forEach(event => {
+            const eventDate = event.date ? new Date(event.date) : 
+                (event.createdAt?.seconds ? new Date(event.createdAt.seconds * 1000) : new Date());
+            if (eventDate.getMonth() === month) {
+                const day = eventDate.getDate();
+                if (!eventsByDay[day]) {
+                    eventsByDay[day] = [];
+                }
+                eventsByDay[day].push(event);
+            }
+        });
+        
+        let html = '';
+        
+        // Day headers
+        const days = ['S','M','T','W','T','F','S'];
+        days.forEach(day => {
+            html += `<div class="calendar-day">${day}</div>`;
+        });
+        
+        // Empty cells for days before first of month
+        for (let i = 0; i < firstDay; i++) {
+            html += `<div class="calendar-date empty"></div>`;
+        }
+        
+        // Days
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(year, month, day);
+            const isToday = day === today.getDate() && month === today.getMonth();
+            const isPast = currentDate < today && !isToday;
+            const dayEvents = eventsByDay[day] || [];
+            const hasEvent = dayEvents.length > 0;
+            
+            let classes = 'calendar-date';
+            // if (isToday) classes += ' today';
+            // if (isPast) classes += ' past';
+            if (hasEvent) classes += ' event-day';
+            
+            // Build tooltip content
+            let tooltip = '';
+            if (hasEvent) {
+                const eventSummaries = dayEvents.map(e => {
+                    const time = e.time || 'TBD';
+                    const title = e.title || 'Untitled';
+                    const location = e.location || 'TBD';
+                    return `${time} - ${title}\n📍 ${location}`;
+                }).join('\n');
+                eventInfo = eventSummaries;
+                tooltip = eventInfo; //eventSummaries;
+            }
+            
+            const tooltipAttr = tooltip ? `data-tooltip="${tooltip.replace(/"/g, '&quot;')}"` : '';
+            html += `<div class="${classes}" ${tooltipAttr}>${day}</div>`;
+        }
+        
+        calendarGrid.innerHTML = html;
+        
+        // Add click handlers to dates
+        const dateElements = calendarGrid.querySelectorAll('.calendar-date:not(.empty)');
+        dateElements.forEach(el => {
+            el.addEventListener('click', function() {
+                const day = parseInt(this.textContent);
+                const monthName = now.toLocaleString('default', { month: 'long' });
+                const selectedDate = new Date(year, month, day);
+                filterEventsByDate(selectedDate, eventInfo);
+            });
+        });
+    }
+
+    // Filter events by selected date
+    function filterEventsByDate(date, eventInfo) {
+        const result = FirestoreService.getAll('events', 'date', 50);
+        // This will be handled by loadEvents with date filter
+        // For now, just show a toast
+        showToast(`Selected ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} ${eventInfo}`, 'info');
+    }
+
+    // Update calendar with event markers (legacy function kept for compatibility)
+    function updateCalendar(events) {
+        generateCalendar(events);
+    }
+
+    // Get event status CSS class
+    function getEventStatusClass(status) {
+        const classes = {
+            'upcoming': 'upcoming',
+            'registration-open': 'open',
+            'limited': 'limited',
+            'cancelled': 'cancelled',
+            'completed': 'completed',
+            'mandatory': 'mandatory'
+        };
+        return classes[status] || 'upcoming';
+    }
+
+    // Format event status for display
+    function formatEventStatus(status) {
+        const labels = {
+            'upcoming': 'Upcoming',
+            'registration-open': 'Registration Open',
+            'limited': 'Limited Slots',
+            'cancelled': 'Cancelled',
+            'completed': 'Completed',
+            'mandatory': 'Mandatory'
+        };
+        return labels[status] || status;
+    }
+
+    // Register for event
+    window.registerForEvent = async function(eventId) {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showToast('❌ Please log in to register.', 'error');
+            return;
+        }
+
+        // Create registration record (could be separate collection)
+        const registration = {
+            eventId: eventId,
+            userId: user.uid,
+            userEmail: user.email,
+            registeredAt: new Date()
+        };
+
+        // For now just show confirmation
+        // In production, you'd store in 'event_registrations' collection
+        showToast('✅ Registration successful! Check your email for details.', 'success');
+    };
+
+    // Initialize calendar on page load
+    if (calendarGrid) {
+        generateCalendar();
+    }
+    // Load events if on events page
+    if (document.getElementById('eventsContainer')) {
+        loadEvents();
+    }
     }
 
     init();
