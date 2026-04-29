@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Facilities - Smart Condominium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="customer-styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="emergency-form-styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>SCMS</span>
+            </div>
+            <nav class="nav">
+                <a href="customer.html" class="nav-link">Book reservation</a>
+                <a href="call-emergency.html" class="nav-link-active">Call Emergency</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1>Call Emergency</h1>
+                <p>Emergency services and contacts</p>
+            </div>
+
+            <!-- Facilities Grid -->
+            <section class="facilities-section">
+                <!-- <div class="facilities-grid" id="facilitiesGrid">
+                    <div class="facility-card" data-facility="pool">
+                        <div class="facility-icon pool">
+                            <i class="fas fa-swimming-pool"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Swimming Pool</h3>
+                            <p>Outdoor rooftop pool with stunning city views. Perfect for relaxation and recreation.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 20 guests</span>
+                                <span><i class="fas fa-clock"></i> 6AM - 10PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="pool" data-name="Swimming Pool">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="gym">
+                        <div class="facility-icon gym">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Fitness Center</h3>
+                            <p>State-of-the-art equipment with cardio and weight training zones.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 15 guests</span>
+                                <span><i class="fas fa-clock"></i> 24/7 Access</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="gym" data-name="Fitness Center">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="tennis">
+                        <div class="facility-icon tennis">
+                            <i class="fas fa-basketball-ball"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Basketball Court</h3>
+                            <p>Full-sized indoor court with professional lighting for evening games.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 10 players</span>
+                                <span><i class="fas fa-clock"></i> 6AM - 10PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="tennis" data-name="Basketball Court">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="facility-card" data-facility="function">
+                        <div class="facility-icon function">
+                            <i class="fas fa-people-roof"></i>
+                        </div>
+                        <div class="facility-content">
+                            <h3>Function Hall</h3>
+                            <p>Spacious hall ideal for parties, meetings, and community gatherings.</p>
+                            <div class="facility-meta">
+                                <span><i class="fas fa-users"></i> Max 100 guests</span>
+                                <span><i class="fas fa-clock"></i> 8AM - 11PM</span>
+                            </div>
+                            <button class="book-facility-btn" data-facility="function" data-name="Function Hall">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div> -->
+                <div class="" id="emergency-page">
+                    <div class="emergency-container">
+                        <div class="emergency-alert-banner">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>For life-threatening emergencies, always dial 911</span>
+                        </div>
+                        <div class="emergency-contacts">
+                            <h3>Emergency Contacts</h3>
+                            <div class="emergency-grid">
+                                <div class="emergency-card fire">
+                                    <div class="emergency-icon">
+                                        <i class="fas fa-fire"></i>
+                                    </div>
+                                    <div class="emergency-info">
+                                        <h4>Fire Department</h4>
+                                        <span class="emergency-number">911 / (02) 911-1111</span>
+                                    </div>
+                                    <!-- <button class="emergency-call-btn">Call Now</button> -->
+                                </div>
+                                <div class="emergency-card police">
+                                    <div class="emergency-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="emergency-info">
+                                        <h4>Police</h4>
+                                        <span class="emergency-number">911 / (02) 911-1111</span>
+                                    </div>
+                                    <!-- <button class="emergency-call-btn">Call Now</button> -->
+                                </div>
+                                <div class="emergency-card medical">
+                                    <div class="emergency-icon">
+                                        <i class="fas fa-ambulance"></i>
+                                    </div>
+                                    <div class="emergency-info">
+                                        <h4>Medical Emergency</h4>
+                                        <span class="emergency-number">911 / (02) 911-1111</span>
+                                    </div>
+                                    <!-- <button class="emergency-call-btn">Call Now</button> -->
+                                </div>
+                                <div class="emergency-card security">
+                                    <div class="emergency-icon">
+                                        <i class="fas fa-user-shield"></i>
+                                    </div>
+                                    <div class="emergency-info">
+                                        <h4>Building Security</h4>
+                                        <span class="emergency-number">Local 8888</span>
+                                    </div>
+                                    <!-- <button class="emergency-call-btn">Call Now</button> -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="emergency-actions">
+                            <h3>Report an Issue</h3>
+                            <div class="emergency-types">
+                                <button class="emergency-type-btn">
+                                    <i class="fas fa-fire-extinguisher"></i>
+                                    <span>Fire Hazard</span>
+                                </button>
+                                <button class="emergency-type-btn">
+                                    <i class="fas fa-power-off"></i>
+                                    <span>Power Outage</span>
+                                </button>
+                                <button class="emergency-type-btn">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Lockout</span>
+                                </button>
+                                <button class="emergency-type-btn">
+                                    <i class="fas fa-car-crash"></i>
+                                    <span>Parking Issue</span>
+                                </button>
+                                <button class="emergency-type-btn">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span>Other Emergency</span>
+                                </button>
+                            </div>
+                        </div> -->
+                        <!-- Emergency Report Form -->
+                        <div class="emergency-report-section">
+                            <h3>Report Emergency / Issue</h3>
+                            <p class="section-subtitle">Submit an emergency report for building management</p>
+                            <form id="emergencyReportForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="reportType">Emergency Type *</label>
+                                        <select id="reportType" required>
+                                            <option value="">Select type</option>
+                                            <option value="Fire">Fire Hazard</option>
+                                            <option value="Flood">Flood/Leak</option>
+                                            <option value="Power">Power Outage</option>
+                                            <option value="Lockout">Lockout</option>
+                                            <option value="Parking">Parking Issue</option>
+                                            <option value="Medical">Medical Emergency</option>
+                                            <option value="Security">Security Concern</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="urgency">Urgency Level *</label>
+                                        <select id="urgency" required>
+                                            <option value="low">Low - Not urgent</option>
+                                            <option value="medium" selected>Medium - Needs attention</option>
+                                            <option value="high">High - Urgent</option>
+                                            <option value="critical">Critical - Life threatening</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="reportLocation">Location *</label>
+                                        <input type="text" id="reportLocation" placeholder="Unit #, Floor, Area, Street" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reportPhone">Phone Number *</label>
+                                        <input type="tel" id="reportPhone" placeholder="+63 912 345 6789" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reportDescription">Description *</label>
+                                    <textarea id="reportDescription" placeholder="Provide detailed information about the emergency, including any injuries, hazards, or specific concerns..." rows="5" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reportAdditional">Additional Details (Optional)</label>
+                                    <textarea id="reportAdditional" placeholder="Any other relevant information..." rows="3"></textarea>
+                                </div>
+                                <!-- <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="hasInjuries"> There are injuries requiring medical attention
+                                    </label>
+                                </div> -->
+                                <div class="form-actions">
+                                    <!-- <button type="submit" class="submit-report-btn" id="submitReportBtn">
+                                        <span class="btn-text">Submit Report</span>
+                                        <span class="btn-loader"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </button> -->
+
+                                    <button type="submit" class="submit-btn" id="submitReportBtn">
+                                        <span class="btn-text">Submit Report</span>
+                                        <span class="btn-loader" id="btn-loader" style="display: none;">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </span>
+                                    </button> <br> <br>
+                                    <p class="form-note">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        For life-threatening emergencies, <strong>call 911 immediately</strong> before submitting this form.
+                                    </p>
+                                </div>
+                            </form>
+                        </div> 
+                        <div class="emergency-procedures">
+                            <h3>Emergency Procedures</h3>
+                            <div class="procedure-tabs">
+                                <button class="procedure-tab active" data-procedure="fire">Fire</button>
+                                <button class="procedure-tab" data-procedure="earthquake">Earthquake</button>
+                                <button class="procedure-tab" data-procedure="medical">Medical</button>
+                                <button class="procedure-tab" data-procedure="lockdown">Lockdown</button>
+                            </div>
+                            <div class="procedure-content">
+                                <div class="procedure" id="fire-procedure">
+                                    <h4>Fire Emergency Evacuation</h4>
+                                    <ol>
+                                        <li>Stay calm and alert others in your area</li>
+                                        <li>Feel doors before opening - if hot, use alternate exit</li>
+                                        <li>Stay low to avoid smoke inhalation</li>
+                                        <li>Use stairs, never elevators</li>
+                                        <li>Proceed to designated assembly area</li>
+                                        <li>Call building security and report your location</li>
+                                        <li>Do not re-enter the building until cleared</li>
+                                    </ol>
+                                </div>
+                                <div class="procedure hidden" id="earthquake-procedure">
+                                    <h4>Earthquake Safety</h4>
+                                    <ol>
+                                        <li>Drop to your hands and knees</li>
+                                        <li>Cover your head and neck</li>
+                                        <li>Take shelter under sturdy furniture</li>
+                                        <li>Stay away from windows and heavy objects</li>
+                                        <li>After shaking stops, evacuate carefully</li>
+                                        <li>Gather at designated assembly area</li>
+                                        <li>Check for injuries and report damages</li>
+                                    </ol>
+                                </div>
+                                <div class="procedure hidden" id="medical-procedure">
+                                    <h4>Medical Emergency Response</h4>
+                                    <ol>
+                                        <li>Assess the situation for safety</li>
+                                        <li>Call 911 for life-threatening conditions</li>
+                                        <li>Contact building security</li>
+                                        <li>Do not move injured person unless necessary</li>
+                                        <li>Apply first aid if trained</li>
+                                        <li>Wait for emergency responders</li>
+                                        <li>Provide emergency access to responders</li>
+                                    </ol>
+                                </div>
+                                <div class="procedure hidden" id="lockdown-procedure">
+                                    <h4>Lockdown Protocol</h4>
+                                    <ol>
+                                        <li>Proceed to nearest secure room immediately</li>
+                                        <li>Lock and barricade doors</li>
+                                        <li>Turn off lights and stay away from windows</li>
+                                        <li>Silence your phone</li>
+                                        <li>Remain quiet and hidden</li>
+                                        <li>Wait for official "All Clear" announcement</li>
+                                        <li>Do not open doors for anyone except security</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="emergency-assembly">
+                            <h3>Assembly Points</h3>
+                            <div class="assembly-list">
+                                <div class="assembly-point">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div class="assembly-info">
+                                        <h4>Primary Assembly Area</h4>
+                                        <p>Ground Floor - Parking Level A</p>
+                                    </div>
+                                </div>
+                                <div class="assembly-point">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div class="assembly-info">
+                                        <h4>Secondary Assembly Area</h4>
+                                        <p>Rooftop Garden (if ground floor unsafe)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal">
+            <button class="modal-close" id="closeModal">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="modal-title">Book <span id="modalFacilityName">Facility</span></h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startTime">Start Time</label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endTime">End Time</label>
+                        <input type="time" id="endTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="guests">Number of Guests</label>
+                    <input type="number" id="guests" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="specialRequests">Special Requests (Optional)</label>
+                    <textarea id="specialRequests" placeholder="Any special requirements..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="confirmation-modal">
+            <div class="confirmation-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Emergency Report Submitted</h2>
+            <p class="confirmation-message">Your emergency report has been submitted successfully.</p>
+            <div class="report-summary">
+                <div class="summary-row">
+                    <span class="label">Report ID:</span>
+                    <span class="value" id="modalReportId">--</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Type:</span>
+                    <span class="value" id="modalReportType">--</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Urgency:</span>
+                    <span class="value" id="modalUrgency">--</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Location:</span>
+                    <span class="value" id="modalLocation">--</span>
+                </div>
+            </div>
+            <div class="confirmation-actions">
+                <button type="button" class="btn-secondary" onclick="closeConfirmationModal()">Submit Another</button>
+                <button type="button" class="btn-primary" onclick="closeConfirmationModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firestore-service.js"></script>
+    <script src="emergency.js"></script>
+</body>
+</html>

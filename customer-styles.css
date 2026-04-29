@@ -79,7 +79,14 @@ body {
 }
 
 .nav-link {
-    color: var(--text-light);
+    color: var(--secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-link-active {
+    color: var(--primary-dark);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;

@@ -1,0 +1,64 @@
+                        <div class="emergency-report-section">
+                            <h3>Report Emergency / Issue</h3>
+                            <p class="section-subtitle">Submit an emergency report for building management</p>
+                            <form id="emergencyReportForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="reportType">Emergency Type *</label>
+                                        <select id="reportType" required>
+                                            <option value="">Select type</option>
+                                            <option value="Fire">Fire Hazard</option>
+                                            <option value="Flood">Flood/Leak</option>
+                                            <option value="Power">Power Outage</option>
+                                            <option value="Lockout">Lockout</option>
+                                            <option value="Parking">Parking Issue</option>
+                                            <option value="Medical">Medical Emergency</option>
+                                            <option value="Security">Security Concern</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="urgency">Urgency Level *</label>
+                                        <select id="urgency" required>
+                                            <option value="low">Low - Not urgent</option>
+                                            <option value="medium" selected>Medium - Needs attention</option>
+                                            <option value="high">High - Urgent</option>
+                                            <option value="critical">Critical - Life threatening</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="reportLocation">Location *</label>
+                                        <input type="text" id="reportLocation" placeholder="Unit #, Floor, Area, Street" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reportPhone">Phone Number *</label>
+                                        <input type="tel" id="reportPhone" placeholder="+63 912 345 6789" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reportDescription">Description *</label>
+                                    <textarea id="reportDescription" placeholder="Provide detailed information about the emergency, including any injuries, hazards, or specific concerns..." rows="5" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reportAdditional">Additional Details (Optional)</label>
+                                    <textarea id="reportAdditional" placeholder="Any other relevant information..." rows="3"></textarea>
+                                </div>
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="hasInjuries"> There are injuries requiring medical attention
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="submit-report-btn" id="submitReportBtn">
+                                        <span class="btn-text">Submit Report</span>
+                                        <span class="btn-loader"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </button>
+                                    <p class="form-note">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        For life-threatening emergencies, <strong>call 911 immediately</strong> before submitting this form.
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
