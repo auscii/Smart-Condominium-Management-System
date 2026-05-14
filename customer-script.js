@@ -89,46 +89,110 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Load user's reservations
-    async function loadReservations() {
-        try {
-            const result = await FirestoreService.getAll('reservations');
-            
-            if (result.success && result.data.length > 0) {
-                const userReservations = result.data.filter(r => 
-                    r.email && r.email === localStorage.getItem('customerEmail')
-                );
+     // Load user's reservations
+     async function loadReservations() {
+         try {
+             const result = await FirestoreService.getAll('reservations');
+             
+             if (result.success && result.data.length > 0) {
+                 const userReservations = result.data.filter(r => 
+                     r.email && r.email === localStorage.getItem('customerEmail')
+                 );
 
-                if (userReservations.length > 0) {
-                    reservationsList.innerHTML = userReservations.map(reservation => `
-                        <div class="reservation-item" data-id="${reservation.id}">
-                            <div class="reservation-date">
-                                <span class="day">${reservation.date ? new Date(reservation.date).getDate() : '--'}</span>
-                                <span class="month">${reservation.date ? new Date(reservation.date).toLocaleString('default', { month: 'short' }) : '---'}</span>
-                            </div>
-                            <div class="reservation-details">
-                                <h4>${reservation.facilityName || reservation.facility || 'Facility'}</h4>
-                                <p>${reservation.startTime || ''} - ${reservation.endTime || ''}</p>
-                            </div>
-                            <span class="reservation-status ${reservation.status || 'pending'}">${reservation.status || 'Pending'}</span>
-                            ${reservation.status !== 'cancelled' ? 
-                                `<button class="cancel-btn" onclick="cancelReservation('${reservation.id}')">Cancel</button>` : 
-                                ''}
-                        </div>
-                    `).join('');
-                } else {
-                    reservationsList.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-calendar-times"></i>
-                            <p>No reservations yet. Book a facility to get started!</p>
-                        </div>
-                    `;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading reservations:', error);
-        }
-    }
+                 if (userReservations.length > 0) {
+                     reservationsList.innerHTML = userReservations.map(reservation => `
+                         <div class="reservation-item" data-id="${reservation.id}">
+                             <div class="reservation-date">
+                                 <span class="day">${reservation.date ? new Date(reservation.date).getDate() : '--'}</span>
+                                 <span class="month">${reservation.date ? new Date(reservation.date).toLocaleString('default', { month: 'short' }) : '---'}</span>
+                             </div>
+                             <div class="reservation-details">
+                                 <h4>${reservation.facilityName || reservation.facility || 'Facility'}</h4>
+                                 <p>${reservation.startTime || ''} - ${reservation.endTime || ''}</p>
+                             </div>
+                             <span class="reservation-status ${reservation.status || 'pending'}">${reservation.status || 'Pending'}</span>
+                             ${reservation.status !== 'cancelled' ? 
+                                 `<button class="cancel-btn" onclick="cancelReservation('${reservation.id}')">Cancel</button>` : 
+                                 ''}
+                         </div>
+                     `).join('');
+                 } else {
+                     reservationsList.innerHTML = `
+                         <div class="empty-state">
+                             <i class="fas fa-calendar-times"></i>
+                             <p>No reservations yet. Book a facility to get started!</p>
+                         </div>
+                     `;
+                 }
+             }
+         } catch (error) {
+             console.error('Error loading reservations:', error);
+         }
+     }
+
+     // Load announcements for customer view
+     async function loadAnnouncements() {
+         try {
+             const result = await FirestoreService.getAll('announcements', 'createdAt', 10);
+             
+             if (result.success && result.data.length > 0) {
+                 const announcementsList = document.getElementById('announcementsList');
+                 
+                 if (announcementsList) {
+                     announcementsList.innerHTML = result.data.map(announcement => {
+                         const date = announcement.createdAt?.seconds
+                             ? new Date(announcement.createdAt.seconds * 1000)
+                             : new Date(announcement.createdAt || Date.now());
+                         
+                         const priorityClass = (announcement.priority || 'normal').toLowerCase();
+                         const categoryClass = (announcement.category || 'general').toLowerCase();
+                         
+                         return `
+                             <div class="announcement-card">
+                                 <div class="announcement-header">
+                                     <div class="announcement-meta">
+                                         <span class="announcement-category ${categoryClass}">${announcement.category || 'General'}</span>
+                                         <span class="announcement-priority priority-${priorityClass}">${announcement.priority || 'Normal'}</span>
+                                     </div>
+                                     <span class="announcement-date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                 </div>
+                                 <div class="announcement-body">
+                                     <h4>${announcement.title || 'No title'}</h4>
+                                     <p>${announcement.content || 'No content'}</p>
+                                 </div>
+                                 <div class="announcement-footer">
+                                     <span class="announcement-author">
+                                         <i class="fas fa-user"></i> ${announcement.createdBy ? announcement.createdBy.split('@')[0] : 'Anonymous'}
+                                     </span>
+                                 </div>
+                             </div>
+                         `;
+                     }).join('');
+                 }
+             } else {
+                 const announcementsList = document.getElementById('announcementsList');
+                 if (announcementsList) {
+                     announcementsList.innerHTML = `
+                         <div class="empty-state">
+                             <i class="fas fa-bullhorn"></i>
+                             <p>No announcements available.</p>
+                         </div>
+                     `;
+                 }
+             }
+         } catch (error) {
+             console.error('Error loading announcements:', error);
+             const announcementsList = document.getElementById('announcementsList');
+             if (announcementsList) {
+                 announcementsList.innerHTML = `
+                     <div class="empty-state">
+                         <i class="fas fa-bullhorn"></i>
+                         <p>Error loading announcements.</p>
+                     </div>
+                 `;
+             }
+         }
+     }
 
     // Attach event listeners to booking buttons
     function attachBookingListeners() {
@@ -213,11 +277,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Initialize
-    loadFacilities();
-    loadReservations();
+     // Initialize
+     loadFacilities();
+     loadReservations();
+     loadAnnouncements();
 
-    // Keyboard escape to close modal
+     // Keyboard escape to close modal
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && bookingModal.classList.contains('active')) {
             bookingModal.classList.remove('active');
