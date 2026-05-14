@@ -194,6 +194,177 @@ document.addEventListener('DOMContentLoaded', function() {
          }
      }
 
+     // Load marketplace listings for customer view
+     async function loadMarketplaceListings() {
+         try {
+             const result = await FirestoreService.getAll('marketplace');
+             
+             if (result.success && result.data.length > 0) {
+                 const marketplaceListings = document.getElementById('marketplaceListings');
+                 
+                 if (marketplaceListings) {
+                     marketplaceListings.innerHTML = result.data.map(listing => {
+                         const date = listing.createdAt?.seconds
+                             ? new Date(listing.createdAt.seconds * 1000)
+                             : new Date(listing.createdAt || Date.now());
+                         
+                         return `
+                             <div class="marketplace-item">
+                                 <div class="marketplace-item-header">
+                                     <h3>${listing.title || 'Untitled Item'}</h3>
+                                     <span class="marketplace-category">${listing.category || 'Other'}</span>
+                                 </div>
+                                 <div class="marketplace-item-body">
+                                     <p>${listing.description || 'No description available'}</p>
+                                     <div class="marketplace-item-details">
+                                         <span class="marketplace-price">₱${parseFloat(listing.price || 0).toFixed(2)}</span>
+                                         <span class="marketplace-condition">${listing.condition || 'Not specified'}</span>
+                                     </div>
+                                 </div>
+                                 <div class="marketplace-item-footer">
+                                     <span class="marketplace-date">
+                                         <i class="fas fa-calendar"></i> ${date.toLocaleDateString()}
+                                     </span>
+                                     <span class="marketplace-seller">
+                                         <i class="fas fa-user"></i> ${listing.sellerName || 'Anonymous'}
+                                     </span>
+                                 </div>
+                             </div>
+                         `;
+                     }).join('');
+                 }
+             } else {
+                 const marketplaceListings = document.getElementById('marketplaceListings');
+                 if (marketplaceListings) {
+                     marketplaceListings.innerHTML = `
+                         <div class="empty-state">
+                             <i class="fas fa-store"></i>
+                             <p>No items listed yet.</p>
+                         </div>
+                     `;
+                 }
+             }
+         } catch (error) {
+             console.error('Error loading marketplace listings:', error);
+             const marketplaceListings = document.getElementById('marketplaceListings');
+             if (marketplaceListings) {
+                 marketplaceListings.innerHTML = `
+                     <div class="empty-state">
+                         <i class="fas fa-store"></i>
+                         <p>Error loading marketplace.</p>
+                     </div>
+                 `;
+             }
+         }
+     }
+
+     // Handle marketplace form submission
+     function handleMarketplaceForm() {
+         const marketplaceForm = document.getElementById('marketplaceForm');
+         if (!marketplaceForm) return;
+         
+         marketplaceForm.addEventListener('submit', function(e) {
+             e.preventDefault();
+             
+             // Get form values
+             const formData = {
+                 title: document.getElementById('itemName').value.trim(),
+                 category: document.getElementById('itemCategory').value,
+                 price: document.getElementById('itemPrice').value,
+                 condition: document.getElementById('itemCondition').value,
+                 description: document.getElementById('itemDescription').value.trim(),
+                 sellerName: localStorage.getItem('customerName') || 'Anonymous',
+                 sellerEmail: localStorage.getItem('customerEmail') || '',
+                 createdAt: new Date()
+             };
+             
+             // Validate required fields
+             if (!formData.title || !formData.category || !formData.price || !formData.condition || !formData.description) {
+                 showToast('❌ Please fill in all required fields.', 'error');
+                 return;
+             }
+             
+             // Validate price
+             if (parseFloat(formData.price) <= 0) {
+                 showToast('❌ Price must be greater than zero.', 'error');
+                 return;
+             }
+             
+             // Show loading state
+             const submitBtn = document.getElementById('createListingBtn');
+             const originalText = submitBtn.textContent;
+             submitBtn.textContent = 'Posting...';
+             submitBtn.disabled = true;
+             
+             // Save to Firestore
+             FirestoreService.addDoc('marketplace', formData)
+                 .then(result => {
+                     // Reset button state
+                     submitBtn.textContent = originalText;
+                     submitBtn.disabled = false;
+                     
+                     if (result.success) {
+                         showToast('✅ Item posted successfully!', 'success');
+                         marketplaceForm.reset();
+                         loadMarketplaceListings(); // Refresh listings
+                     } else {
+                         showToast('❌ Error: ' + result.error, 'error');
+                     }
+                 })
+                 .catch(error => {
+                     // Reset button state
+                     submitBtn.textContent = originalText;
+                     submitBtn.disabled = false;
+                     showToast('❌ Failed to post item: ' + error.message, 'error');
+                 });
+         });
+     }
+
+     // Handle search and filter functionality for marketplace
+     function setupMarketplaceFilters() {
+         const searchInput = document.getElementById('searchListings');
+         const categoryButtons = document.querySelectorAll('.category-btn');
+         
+         if (!searchInput || !categoryButtons.length) return;
+         
+         // Search functionality
+         searchInput.addEventListener('input', function() {
+             const searchTerm = this.value.toLowerCase();
+             const marketplaceItems = document.querySelectorAll('.marketplace-item');
+             
+             marketplaceItems.forEach(item => {
+                 const title = item.querySelector('.marketplace-item-header h3')?.textContent.toLowerCase() || '';
+                 const description = item.querySelector('.marketplace-item-body p')?.textContent.toLowerCase() || '';
+                 const category = item.querySelector('.marketplace-category')?.textContent.toLowerCase() || '';
+                 
+                 const matchesSearch = title.includes(searchTerm) || 
+                                   description.includes(searchTerm) || 
+                                   category.includes(searchTerm);
+                 item.style.display = matchesSearch ? '' : 'none';
+             });
+         });
+         
+         // Category filter functionality
+         categoryButtons.forEach(button => {
+             button.addEventListener('click', function() {
+                 // Remove active class from all buttons
+                 categoryButtons.forEach(btn => btn.classList.remove('active'));
+                 // Add active class to clicked button
+                 this.classList.add('active');
+                 
+                 const selectedCategory = this.dataset.category;
+                 const marketplaceItems = document.querySelectorAll('.marketplace-item');
+                 
+                 marketplaceItems.forEach(item => {
+                     const itemCategory = item.querySelector('.marketplace-category')?.textContent || '';
+                     const matchesCategory = selectedCategory === 'All' || 
+                                           itemCategory.toLowerCase() === selectedCategory.toLowerCase();
+                     item.style.display = matchesCategory ? '' : 'none';
+                 });
+             });
+         });
+     }
+
     // Attach event listeners to booking buttons
     function attachBookingListeners() {
         document.querySelectorAll('.book-facility-btn').forEach(btn => {
@@ -277,12 +448,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-     // Initialize
-     loadFacilities();
-     loadReservations();
-     loadAnnouncements();
+      // Initialize
+      loadFacilities();
+      loadReservations();
+      loadAnnouncements();
+      loadMarketplaceListings();
+      setupMarketplaceFilters();
+      handleMarketplaceForm();
 
-     // Keyboard escape to close modal
+      // Keyboard escape to close modal
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && bookingModal.classList.contains('active')) {
             bookingModal.classList.remove('active');
