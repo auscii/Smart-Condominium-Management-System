@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyStay: Smart Condominium Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #0a0a0f; font-family: 'Segoe UI', Arial, sans-serif; }
+
+        #container { width: 100vw; height: 100vh; position: relative; }
+
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #info h1 { font-size: 1.4em; margin-bottom: 8px; color: #4fc3f7; }
+        #info p { font-size: 0.85em; opacity: 0.8; line-height: 1.5; }
+
+        #room-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4fc3f7;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(79, 195, 247, 0.8);
+            z-index: 100;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #target-room-indicator {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #target-room-indicator.visible {
+            opacity: 1;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        #crosshair::before {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #crosshair::after {
+            width: 100%;
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 100;
+            font-size: 0.8em;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-hint kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #555;
+            font-family: monospace;
+        }
+
+        .room-shortcuts {
+            position: absolute;
+            bottom: 160px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 100;
+            font-size: 0.85em;
+            line-height: 1.8;
+            backdrop-filter: blur(10px);
+        }
+
+        .room-shortcuts kbd {
+            background: #00aa44;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #00ff88;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 20px);
+            color: white;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            font-size: 0.9em;
+        }
+
+        #interaction-prompt.visible {
+            opacity: 1;
+        }
+
+        #minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(79, 195, 247, 0.5);
+            border-radius: 10px;
+            z-index: 100;
+            padding: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        #minimap canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="info">
+            <h1>EasyStay Smart Condominium Management System Condo Unit Visualization</h1>
+        </div>
+        <div id="room-label">Living Room</div>
+        <div id="target-room-indicator"></div>
+        <div id="crosshair"></div>
+        <!-- <div class="controls-hint">
+            <div><kbd>WASD</kbd> to move</div>
+            <div><kbd></kbd> to look</div>
+            <div><kbd>E</kbd> or <kbd>Click arrow</kbd> to teleport</div>
+            <div><kbd>1-4</kbd> quick teleport to rooms</div>
+        </div> -->
+        <div id="interaction-prompt">Press <kbd>"E"</kbd> to go inside the Room</div>
+        <div id="minimap"><canvas id="minimap-canvas"></canvas></div>
+        <div class="room-shortcuts">
+            <b>Room Shortcuts:</b>
+            <div><kbd>1</kbd> &nbsp;Kitchen</div>
+            <div><kbd>2</kbd> &nbsp;Living Room</div>
+            <div><kbd>3</kbd> &nbsp;Bedroom</div>
+            <div><kbd>4</kbd> &nbsp;Bathroom</div>
+            <div><kbd>Hover Mouse</kbd> &nbsp;To look around</div>
+            <div><kbd>E</kbd> &nbsp; to go inside the Room (after hovering a green arrow)</div>
+            <div><kbd>,</kbd> &nbsp; to Rotate Left camera</div>
+            <div><kbd>.</kbd> &nbsp; to Rotate Right camera</div>
+            <div><kbd>X</kbd> &nbsp; to Exit</div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 1, 30);
+
+        // Camera (first-person perspective)
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.6, 3);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Pointer lock for looking around
+        let isPointerLocked = false;
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        let isRotatingLeft = false;
+        let isRotatingRight = false;
+        let velocity = new THREE.Vector3();
+        let direction = new THREE.Vector3();
+        let spinningFans = []; // Array to hold rotating fan blade groups
+        let textureLoader = null;
+
+        const movementSpeed = 5.0;
+        const lookSensitivity = 0.002;
+        const rotationSpeed = 0.03;
+
+        // Function to load image textures from URLs
+        function loadImageTexture(url) {
+            if (!textureLoader) {
+                textureLoader = new THREE.TextureLoader();
+            }
+            const texture = textureLoader.load(url);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.colorSpace = THREE.SRGBColorSpace;
+            return texture;
+        }
+
+        // Room definitions
+        const rooms = {
+            'Living Room': {
+                x: 0, z: 0, width: 7, depth: 6,
+                connections: { 'up': 'Bedroom', 'down': 'Kitchen', 'left': null, 'right': 'Bathroom' },
+                startPos: { x: 0, z: 2 }
+            },
+            'Kitchen': {
+                x: 0, z: -6, width: 7, depth: 5,
+                connections: { 'up': 'Living Room', 'down': null, 'left': null, 'right': null },
+                startPos: { x: -2, z: -4 }
+            },
+            'Bedroom': {
+                x: 0, z: 6, width: 6, depth: 6,
+                connections: { 'up': null, 'down': 'Living Room', 'left': null, 'right': 'Bathroom' },
+                startPos: { x: 0, z: 4 }
+            },
+            'Bathroom': {
+                x: 7, z: 0, width: 5, depth: 5,
+                connections: { 'up': 'Bedroom', 'down': null, 'left': 'Living Room', 'right': null },
+                startPos: { x: 5, z: 0 }
+            }
+        };
+
+        let currentRoom = 'Living Room';
+
+        function getRoom(roomName) {
+            return rooms[roomName];
+        }
+        
+        /*
+        // Create image textures using canvas
+        function createProceduralTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            switch(type) {
+                case 'tv-screen':
+                    // Create a TV show scene with sky, grass, and simple shapes
+                    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                    grad.addColorStop(0, '#87CEEB');
+                    grad.addColorStop(0.5, '#98D8E8');
+                    grad.addColorStop(1, '#90EE90');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Sun
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(400, 100, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Clouds
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(100, 80, 30, 0, Math.PI * 2);
+                    ctx.arc(140, 80, 40, 0, Math.PI * 2);
+                    ctx.arc(180, 80, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                    // House
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(200, 280, 120, 120);
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.moveTo(180, 280);
+                    ctx.lineTo(260, 220);
+                    ctx.lineTo(340, 280);
+                    ctx.fill();
+                    // Windows
+                    ctx.fillStyle = '#87CEEB';
+                    ctx.fillRect(220, 310, 30, 30);
+                    ctx.fillRect(270, 310, 30, 30);
+                    // Door
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(240, 340, 40, 60);
+                    break;
+
+                case 'sofa-fabric':
+                    // Create fabric texture with pattern
+                    ctx.fillStyle = '#4a4a4a';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Add subtle weave pattern
+                    ctx.strokeStyle = '#555555';
+                    ctx.lineWidth = 1;
+                    for(let i = 0; i < 512; i += 8) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, 512);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(512, i);
+                        ctx.stroke();
+                    }
+                    // Add some darker spots
+                    ctx.fillStyle = '#3a3a3a';
+                    for(let i = 0; i < 20; i++) {
+                        const x = Math.random() * 512;
+                        const y = Math.random() * 512;
+                        const size = Math.random() * 20 + 5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'coffee-table-wood':
+                    // Wood grain texture
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#654321';
+                    ctx.lineWidth = 2;
+                    for(let i = 0; i < 512; i += 15) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i + Math.sin(i * 0.05) * 5);
+                        ctx.lineTo(512, i + Math.sin(i * 0.05) * 5);
+                        ctx.stroke();
+                    }
+                    // Add some knots
+                    ctx.fillStyle = '#5D4037';
+                    for(let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * 512, Math.random() * 512, 10 + Math.random() * 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'rug':
+                    // Ornate rug pattern
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 8;
+                    ctx.strokeRect(30, 30, 452, 452);
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(60, 60, 392, 392);
+                    // Geometric pattern
+                    ctx.fillStyle = '#DAA520';
+                    for(let i = 0; i < 5; i++) {
+                        for(let j = 0; j < 5; j++) {
+                            ctx.beginPath();
+                            ctx.arc(80 + i * 100, 80 + j * 100, 20, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    break;
+
+                case 'books':
+                    // Colorful books
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, 512, 512);
+                    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+                    for(let i = 0; i < 30; i++) {
+                        ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                        const w = 20 + Math.random() * 30;
+                        const h = 80 + Math.random() * 120;
+                        const x = Math.random() * 400;
+                        const y = Math.random() * 350;
+                        ctx.fillRect(x, y, w, h);
+                        // Spine line
+                        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(x + w - 5, y);
+                        ctx.lineTo(x + w - 5, y + h);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'lamp-shade':
+                    // Glowing lamp shade
+                    const glowGrad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                    glowGrad.addColorStop(0, '#FFFFE0');
+                    glowGrad.addColorStop(0.5, '#FFD700');
+                    glowGrad.addColorStop(1, '#FF8C00');
+                    ctx.fillStyle = glowGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Add some texture
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    for(let i = 0; i < 50; i++) {
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * 512, Math.random() * 512, Math.random() * 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'plant':
+                    // Potted plant
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(150, 280, 212, 200);
+                    // Pot rim
+                    ctx.fillStyle = '#A0522D';
+                    ctx.fillRect(140, 260, 232, 30);
+                    // Leaves
+                    ctx.fillStyle = '#228B22';
+                    for(let i = 0; i < 15; i++) {
+                        ctx.beginPath();
+                        ctx.ellipse(
+                            180 + Math.random() * 150,
+                            100 + Math.random() * 150,
+                            20 + Math.random() * 30,
+                            40 + Math.random() * 40,
+                            Math.random() * Math.PI, 0, Math.PI * 2
+                        );
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'bedding':
+                    // Soft bed duvet with subtle pattern
+                    const bedGrad = ctx.createLinearGradient(0, 0, 512, 512);
+                    bedGrad.addColorStop(0, '#E8E8E8');
+                    bedGrad.addColorStop(0.5, '#F5F5F5');
+                    bedGrad.addColorStop(1, '#E0E0E0');
+                    ctx.fillStyle = bedGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Subtle quilted pattern
+                    ctx.strokeStyle = '#D0D0D0';
+                    ctx.lineWidth = 3;
+                    for(let i = 0; i < 512; i += 64) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, 512);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(512, i);
+                        ctx.stroke();
+                    }
+                    // Add some shadow depth
+                    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+                    for(let i = 0; i < 10; i++) {
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * 512, Math.random() * 512, 30 + Math.random() * 50, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'desk-wood':
+                    // Polished desk wood
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Wood grain
+                    ctx.strokeStyle = '#4A2C0F';
+                    ctx.lineWidth = 2;
+                    for(let i = 0; i < 512; i += 10) {
+                        const offset = Math.sin(i * 0.03) * 8;
+                        ctx.beginPath();
+                        ctx.moveTo(0, i + offset);
+                        ctx.lineTo(512, i + offset);
+                        ctx.stroke();
+                    }
+                    // Glossy highlight
+                    const deskGrad = ctx.createLinearGradient(0, 0, 512, 0);
+                    deskGrad.addColorStop(0, 'rgba(255,255,255,0.1)');
+                    deskGrad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
+                    deskGrad.addColorStop(0.7, 'rgba(255,255,255,0.1)');
+                    deskGrad.addColorStop(1, 'rgba(255,255,255,0.0)');
+                    ctx.fillStyle = deskGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    break;
+
+                case 'pc-screen':
+                    // Computer desktop scene
+                    // Background blue gradient
+                    const pcGrad = ctx.createLinearGradient(0, 0, 0, 512);
+                    pcGrad.addColorStop(0, '#1a1a3e');
+                    pcGrad.addColorStop(1, '#2d2d5a');
+                    ctx.fillStyle = pcGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Window/UI elements
+                    ctx.fillStyle = '#4a4a6a';
+                    ctx.fillRect(30, 30, 200, 150);
+                    ctx.fillStyle = '#3a3a5a';
+                    ctx.fillRect(40, 40, 180, 130);
+                    // Text lines
+                    ctx.fillStyle = '#88ff88';
+                    for(let i = 0; i < 8; i++) {
+                        ctx.fillRect(50, 60 + i * 14, 120 + Math.random() * 40, 8);
+                    }
+                    // Terminal prompt
+                    ctx.fillStyle = '#00ff00';
+                    ctx.font = 'bold 24px monospace';
+                    ctx.fillText('C:\\Users\\Player>', 50, 220);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('dir', 280, 220);
+                    // Taskbar
+                    ctx.fillStyle = '#2d2d5a';
+                    ctx.fillRect(0, 480, 512, 32);
+                    ctx.fillStyle = '#4CAF50';
+                    ctx.fillRect(10, 488, 80, 16);
+                    ctx.fillStyle = '#2196F3';
+                    ctx.fillRect(100, 488, 60, 16);
+                    break;
+
+                case 'aircon':
+                    // Wall air conditioning unit
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Front grill
+                    ctx.fillStyle = '#e0e0e0';
+                    ctx.fillRect(20, 20, 472, 472);
+                    // Horizontal slats
+                    ctx.fillStyle = '#c0c0c0';
+                    for(let i = 0; i < 20; i++) {
+                        ctx.fillRect(40, 80 + i * 20, 432, 8);
+                    }
+                    // Display panel
+                    ctx.fillStyle = '#001a00';
+                    ctx.fillRect(280, 40, 150, 80);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.font = 'bold 48px monospace';
+                    ctx.fillText('22°C', 300, 95);
+                    // Brand label
+                    ctx.fillStyle = '#666666';
+                    ctx.font = 'bold 32px Arial';
+                    ctx.fillText('COOLMASTER', 80, 450);
+                    break;
+
+                case 'cabinet-wood':
+                    // Wardrobe wood grain
+                    ctx.fillStyle = '#8B7355';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#6B5344';
+                    ctx.lineWidth = 3;
+                    for(let i = 0; i < 512; i += 20) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i + Math.sin(i * 0.04) * 6);
+                        ctx.lineTo(512, i + Math.sin(i * 0.04) * 6);
+                        ctx.stroke();
+                    }
+                    // Handles
+                    ctx.fillStyle = '#C0C0C0';
+                    ctx.fillRect(200, 256, 80, 12);
+                    ctx.fillRect(200, 320, 80, 12);
+                    break;
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            return texture;
+        }
+        */
+        const materials = {
+            floor: new THREE.MeshStandardMaterial({
+                color: 0x3d2817,
+                roughness: 0.8,
+                metalness: 0.1
+            }),
+            wall: new THREE.MeshStandardMaterial({
+                color: 0xf5e9d8,
+                roughness: 0.7,
+                metalness: 0.0
+            }),
+            ceiling: new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 1.0,
+                metalness: 0.0
+            }),
+            wood: new THREE.MeshStandardMaterial({
+                color: 0x8b4513,
+                roughness: 0.6,
+                metalness: 0.1
+            }),
+            furniture: new THREE.MeshStandardMaterial({
+                color: 0x2c2c2c,
+                roughness: 0.5,
+                metalness: 0.2
+            }),
+            kitchen: new THREE.MeshStandardMaterial({
+                color: 0xe8e8e8,
+                roughness: 0.3,
+                metalness: 0.1
+            }),
+            marble: new THREE.MeshStandardMaterial({
+                color: 0xf0f0f0,
+                roughness: 0.2,
+                metalness: 0.1
+            }),
+            metal: new THREE.MeshStandardMaterial({
+                color: 0xc0c0c0,
+                roughness: 0.3,
+                metalness: 0.8
+            }),
+            glass: new THREE.MeshStandardMaterial({
+                color: 0x87ceeb,
+                roughness: 0.0,
+                metalness: 0.0,
+                opacity: 0.3,
+                transparent: true
+            })
+        };
+
+        // Image-based materials for Living Room (defined after createProceduralTexture function)
+        let tvScreenMaterial, tvFrameMaterial, sofaFabricMaterial, coffeeTableMaterial, rugMaterial, lampShadeMaterial, plantPotMaterial, plantLeavesMaterial, booksMaterials;
+        // Image-based materials for Bedroom
+        let beddingMaterial, deskWoodMaterial, pcScreenMaterial, airconMaterial, cabinetWoodMaterial;
+        // New Living Room image materials for appliances
+        let sofaDetailedMaterial, tvFrameDetailedMaterial, lampShadeDetailedMaterial, fanBladesMaterial, fanGrillMaterial, fanBaseMaterial;
+        // Real image-based materials for Living Room
+        let coffeeTableMaterialReal, rugMaterialReal, bookshelfMaterialReal;
+        // Real image-based materials for Kitchen
+        let gasStoveMaterial, refrigeratorMaterial, kitchenTableMaterial, platesMaterial;
+        // Real image-based materials for Bedroom
+        let masterBedMaterial, bedroomSofaMaterial, pillowMaterial, airconBedroomMaterial, pcMonitorMaterial, pcTowerMaterial;
+        // Real image-based materials for Bathroom
+        let toiletMaterial, sinkMaterial, mirrorMaterial, bathtubMaterial;
+
+        // Initialize image-based materials
+        tvScreenMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('tv-screen'),
+            emissive: new THREE.Color(0x222222),
+            emissiveIntensity: 0.1,
+            roughness: 0.3,
+            metalness: 0.1
+        });
+
+        // Kept for bedside lamps (original procedural texture)
+        lampShadeMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('lamp-shade'),
+            emissive: new THREE.Color(0xFFD700),
+            emissiveIntensity: 0.6,
+            roughness: 0.5,
+            metalness: 0.1,
+            side: THREE.DoubleSide
+        });
+
+        plantPotMaterial = new THREE.MeshStandardMaterial({
+            color: 0x8B4513,
+            roughness: 0.8
+        });
+
+        plantLeavesMaterial = new THREE.MeshStandardMaterial({
+            color: 0x228B22,
+            roughness: 0.7,
+            side: THREE.DoubleSide
+        });
+
+        // Books array with multiple colors
+        booksMaterials = [
+            new THREE.MeshStandardMaterial({ color: 0xFF6B6B, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0x4ECDC4, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0x45B7D1, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0x96CEB4, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0xFFEAA7, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0xDDA0DD, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0x98D8C8, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0xFF8C00, roughness: 0.8 }),
+            new THREE.MeshStandardMaterial({ color: 0x9370DB, roughness: 0.8 }),
+        ];
+
+        // Bedroom image-based materials
+        beddingMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('bedding'),
+            roughness: 0.8,
+            metalness: 0.0
+        });
+
+        deskWoodMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('desk-wood'),
+            roughness: 0.5,
+            metalness: 0.1
+        });
+
+        pcScreenMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('pc-screen'),
+            emissive: new THREE.Color(0x111133),
+            emissiveIntensity: 0.15,
+            roughness: 0.3,
+            metalness: 0.1
+        });
+
+        airconMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('aircon'),
+            roughness: 0.4,
+            metalness: 0.2
+        });
+
+        cabinetWoodMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('cabinet-wood'),
+            roughness: 0.6,
+            metalness: 0.1
+        });
+
+        // Living Room - Real Image Textures from Unsplash
+        const sofaTexture = loadImageTexture('https://t4.ftcdn.net/jpg/05/42/96/89/360_F_542968913_UvXxERTGauNJKvZIzwiY8tX7OjQJp3jF.jpg');
+        const tvTexture = loadImageTexture('https://www.shutterstock.com/image-photo/modern-smart-tv-screen-ocean-260nw-2501470437.jpg');
+        const fanTexture = loadImageTexture('https://png.pngtree.com/png-vector/20240715/ourmid/pngtree-a-monochrome-fan-on-stand-png-image_13094333.png');
+        const lampTexture = loadImageTexture('https://www.shutterstock.com/image-photo/modern-pleated-shade-table-lamp-260nw-2680222819.jpg');
+        const coffeeTableTexture = loadImageTexture('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnIGvWIwIqcAq0WeQLl8Bk6LBrrirXfOLFaQ&s');
+        const rugTexture = loadImageTexture('https://www.shutterstock.com/image-photo/beige-brown-square-carpet-isolated-260nw-2418769455.jpg');
+        const bookshelfTexture = loadImageTexture('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZLgj9y6fH6zJl7xoLAx4Ub41AB4zmDF7VmQ&s');
+
+        // Kitchen - Real Image Textures
+        const gasStoveTexture = loadImageTexture('https://png.pngtree.com/png-vector/20240907/ourlarge/pngtree-four-burner-black-gas-stove-top---transparent-background-png-image_13784084.png');
+        const refrigeratorTexture = loadImageTexture('https://png.pngtree.com/png-vector/20240716/ourlarge/pngtree-refrigerator-black-on-transparent-png-image_13100770.png');
+        const kitchenTableTexture = loadImageTexture('https://png.pngtree.com/png-vector/20210915/ourmid/pngtree-restaurant-table-png-image_3931080.jpg');
+        const platesTexture = loadImageTexture('https://media.istockphoto.com/id/1139696754/vector/empty-white-plate-isolated-on-white-background-vector-illustration.jpg?s=612x612&w=0&k=20&c=Q2vuKsKUbZwqOPsH8_01wrR6rsTqou4dCddJsSTZQc0=');
+
+        // Bedroom - Real Image Textures
+        const masterBedTexture = loadImageTexture('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=512&h=512&fit=crop&q=80');
+        const bedroomSofaTexture = loadImageTexture('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=512&h=512&fit=crop&q=80');
+        const pillowTexture = loadImageTexture('https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=512&h=512&fit=crop&q=80');
+        const airconBedroomTexture = loadImageTexture('https://png.pngtree.com/png-vector/20250218/ourlarge/pngtree-air-conditioner-isolated-on-transparent-background-png-image_15515086.png');
+        const pcMonitorTexture = loadImageTexture('https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=512&h=512&fit=crop&q=80');
+        const pcTowerTexture = loadImageTexture('https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=512&h=512&fit=crop&q=80');
+
+        // Bathroom - Real Image Textures
+        const toiletTexture = loadImageTexture('https://static.vecteezy.com/system/resources/thumbnails/022/935/623/small/open-moden-white-toilet-bowl-after-guest-s-use-in-resort-or-hotel-restroom-isolated-with-clipping-path-in-format-png.png');
+        const sinkTexture = loadImageTexture('https://static.vecteezy.com/system/resources/thumbnails/068/911/165/small/white-ceramic-double-bowl-farmhouse-kitchen-sink-with-a-classic-brushed-metal-faucet-png.png');
+        const mirrorTexture = loadImageTexture('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzItQKbFiaXcch2CcmWl6WQAtM5yCpqj1o8Q&s');
+        const bathtubTexture = loadImageTexture('https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=512&h=512&fit=crop&q=80');
+
+        // New Living Room image materials using real photos
+        sofaDetailedMaterial = new THREE.MeshStandardMaterial({
+            map: sofaTexture,
+            roughness: 0.9,
+            metalness: 0.0
+        });
+
+        tvFrameDetailedMaterial = new THREE.MeshStandardMaterial({
+            map: tvTexture,
+            roughness: 0.9,
+            metalness: 0.0
+        });
+
+        lampShadeDetailedMaterial = new THREE.MeshStandardMaterial({
+            map: lampTexture,
+            emissive: new THREE.Color(0xFFD700),
+            emissiveIntensity: 0.4,
+            roughness: 0.6,
+            metalness: 0.1,
+            side: THREE.DoubleSide
+        });
+
+        fanGrillMaterial = new THREE.MeshStandardMaterial({
+            map: fanTexture,
+            roughness: 0.3,
+            metalness: 0.5
+        });
+
+        // Coffee table with real wood image
+        coffeeTableMaterialReal = new THREE.MeshStandardMaterial({
+            map: coffeeTableTexture,
+            roughness: 0.6,
+            metalness: 0.1
+        });
+
+        // Rug with real image
+        rugMaterialReal = new THREE.MeshStandardMaterial({
+            map: rugTexture,
+            roughness: 0.9,
+            metalness: 0.0,
+            side: THREE.DoubleSide
+        });
+
+        // Bookshelf with real wood image
+        bookshelfMaterialReal = new THREE.MeshStandardMaterial({
+            map: bookshelfTexture,
+            roughness: 0.7,
+            metalness: 0.1
+        });
+
+        // Kitchen appliances with real image textures
+        gasStoveMaterial = new THREE.MeshStandardMaterial({
+            map: gasStoveTexture,
+            roughness: 0.5,
+            metalness: 0.3
+        });
+
+        refrigeratorMaterial = new THREE.MeshStandardMaterial({
+            map: refrigeratorTexture,
+            roughness: 0.4,
+            metalness: 0.7
+        });
+
+        kitchenTableMaterial = new THREE.MeshStandardMaterial({
+            map: kitchenTableTexture,
+            roughness: 0.6,
+            metalness: 0.1
+        });
+
+        platesMaterial = new THREE.MeshStandardMaterial({
+            map: platesTexture,
+            roughness: 0.3,
+            metalness: 0.8
+        });
+
+        // Fan blade and base materials (keep solid colors)
+        fanBladesMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a1a1a,
+            roughness: 0.4,
+            metalness: 0.3
+        });
+
+        fanBaseMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2c2c2c,
+            roughness: 0.5,
+            metalness: 0.6
+        });
+
+        deskWoodMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('desk-wood'),
+            roughness: 0.5,
+            metalness: 0.1
+        });
+
+        pcScreenMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('pc-screen'),
+            emissive: new THREE.Color(0x111133),
+            emissiveIntensity: 0.15,
+            roughness: 0.3,
+            metalness: 0.1
+        });
+
+        airconMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('aircon'),
+            roughness: 0.4,
+            metalness: 0.2
+        });
+
+        cabinetWoodMaterial = new THREE.MeshStandardMaterial({
+            map: createProceduralTexture('cabinet-wood'),
+            roughness: 0.6,
+            metalness: 0.1
+        });
+
+        // Bedroom image-based materials (real photos)
+        masterBedMaterial = new THREE.MeshStandardMaterial({
+            map: masterBedTexture,
+            roughness: 0.8,
+            metalness: 0.0
+        });
+
+        bedroomSofaMaterial = new THREE.MeshStandardMaterial({
+            map: bedroomSofaTexture,
+            roughness: 0.9,
+            metalness: 0.0
+        });
+
+        pillowMaterial = new THREE.MeshStandardMaterial({
+            map: pillowTexture,
+            roughness: 0.9,
+            metalness: 0.0
+        });
+
+        airconBedroomMaterial = new THREE.MeshStandardMaterial({
+            map: airconBedroomTexture,
+            roughness: 0.4,
+            metalness: 0.6
+        });
+
+        pcMonitorMaterial = new THREE.MeshStandardMaterial({
+            map: pcMonitorTexture,
+            roughness: 0.3,
+            metalness: 0.7
+        });
+
+        pcTowerMaterial = new THREE.MeshStandardMaterial({
+            map: pcTowerTexture,
+            roughness: 0.5,
+            metalness: 0.5
+        });
+
+        // Bathroom image-based materials (real photos)
+        toiletMaterial = new THREE.MeshStandardMaterial({
+            map: toiletTexture,
+            roughness: 0.4,
+            metalness: 0.7
+        });
+
+        sinkMaterial = new THREE.MeshStandardMaterial({
+            map: sinkTexture,
+            roughness: 0.2,
+            metalness: 0.9
+        });
+
+        mirrorMaterial = new THREE.MeshStandardMaterial({
+            map: mirrorTexture,
+            roughness: 0.0,
+            metalness: 0.9
+        });
+
+        bathtubMaterial = new THREE.MeshStandardMaterial({
+            map: bathtubTexture,
+            roughness: 0.3,
+            metalness: 0.2
+        });
+
+        // Build apartment
+        const wallHeight = 2.8;
+        const wallThickness = 0.15;
+
+        function createWall(width, height, depth, x, z, name = '') {
+            const wall = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, depth),
+                materials.wall
+            );
+            wall.position.set(x, height / 2, z);
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            wall.userData.type = 'wall';
+            scene.add(wall);
+            return wall;
+        }
+
+        function createFloor(width, depth, x, z) {
+            const floor = new THREE.Mesh(
+                new THREE.BoxGeometry(width, 0.15, depth),
+                materials.floor
+            );
+            floor.position.set(x, -0.075, z);
+            floor.receiveShadow = true;
+            floor.userData.type = 'floor';
+            scene.add(floor);
+            return floor;
+        }
+
+        function createCeiling(width, depth, x, z) {
+            const ceiling = new THREE.Mesh(
+                new THREE.BoxGeometry(width, 0.1, depth),
+                materials.ceiling
+            );
+            ceiling.position.set(x, wallHeight + 0.05, z);
+            scene.add(ceiling);
+            return ceiling;
+        }
+
+        // Create all rooms
+        for (const [name, room] of Object.entries(rooms)) {
+            createFloor(room.width, room.depth, room.x, room.z);
+            createCeiling(room.width, room.depth, room.x, room.z);
+
+            // North wall
+            createWall(room.width + wallThickness * 2, wallHeight, wallThickness, room.x, room.z + room.depth / 2, 'north');
+            // South wall
+            createWall(room.width + wallThickness * 2, wallHeight, wallThickness, room.x, room.z - room.depth / 2, 'south');
+            // West wall
+            createWall(wallThickness, wallHeight, room.depth, room.x - room.width / 2, room.z, 'west');
+            // East wall
+            createWall(wallThickness, wallHeight, room.depth, room.x + room.width / 2, room.z, 'east');
+        }
+
+        // Doorways (visual markers)
+        function createDoorway(x, z, rotation) {
+            const doorFrame = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 2.2, 0.1),
+                new THREE.MeshStandardMaterial({ color: 0x4a2810, roughness: 0.6 })
+            );
+            doorFrame.position.set(x, 1.1, z);
+            doorFrame.rotation.y = rotation;
+            scene.add(doorFrame);
+
+            const door = new THREE.Mesh(
+                new THREE.BoxGeometry(1.0, 2.0, 0.08),
+                new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.5 })
+            );
+            door.position.set(x, 1.0, z);
+            door.rotation.y = rotation;
+            scene.add(door);
+        }
+
+        // Door positions
+        createDoorway(0, 2.8, 0);
+        createDoorway(0, -2.8, Math.PI);
+        createDoorway(0, 8, Math.PI);
+        createDoorway(4.5, 0, Math.PI / 2);
+        createDoorway(8, 0, -Math.PI / 2);
+        createDoorway(7, 0, Math.PI);
+
+        // Teleport arrows
+        const teleportArrows = [];
+
+        function createTeleportArrow(x, z, rotation, targetRoom, fromRoom, direction) {
+            // Offset arrow to be in front of the wall (room side) to avoid z-fighting
+            const wallOffset = 0.2; // distance from wall surface into room
+            switch(direction) {
+                case 'up':    z -= wallOffset; break;  // north wall, move south into room
+                case 'down':  z += wallOffset; break;  // south wall, move north into room
+                case 'left':  x += wallOffset; break;  // west wall, move east into room
+                case 'right': x -= wallOffset; break;  // east wall, move west into room
+            }
+
+            const arrowGroup = new THREE.Group();
+
+            // Arrow head (cone)
+            const head = new THREE.Mesh(
+                new THREE.ConeGeometry(0.3, 0.8, 4),
+                new THREE.MeshStandardMaterial({
+                    color: 0x00ff88,
+                    emissive: 0x00ff88,
+                    emissiveIntensity: 0.5,
+                    roughness: 0.3,
+                    metalness: 0.7
+                })
+            );
+            head.rotation.x = Math.PI / 2;
+            head.position.y = 1.2;
+            arrowGroup.add(head);
+
+            // Arrow shaft
+            const shaft = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.08, 0.08, 1.5, 8),
+                new THREE.MeshStandardMaterial({
+                    color: 0x00ff88,
+                    emissive: 0x00ff88,
+                    emissiveIntensity: 0.3
+                })
+            );
+            shaft.position.y = 0.55;
+            arrowGroup.add(shaft);
+
+            // Glowing ring at base
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(0.5, 0.05, 8, 16),
+                new THREE.MeshStandardMaterial({
+                    color: 0x00ffff,
+                    emissive: 0x00ffff,
+                    emissiveIntensity: 0.8,
+                    transparent: true,
+                    opacity: 0.8
+                })
+            );
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            arrowGroup.add(ring);
+
+            arrowGroup.position.set(x, 0, z);
+            arrowGroup.rotation.y = rotation;
+            arrowGroup.userData = {
+                type: 'teleportArrow',
+                targetRoom: targetRoom,
+                fromRoom: fromRoom,
+                direction: direction
+            };
+
+            scene.add(arrowGroup);
+            teleportArrows.push(arrowGroup);
+        }
+
+        // Create teleport arrows based on room connections
+        for (const [roomName, room] of Object.entries(rooms)) {
+            const conn = room.connections;
+
+            // Correct: up arrow at north wall (z + depth/2), down at south wall (z - depth/2)
+            if (conn.up) createTeleportArrow(room.x, room.z + room.depth / 2, 0, conn.up, roomName, 'up');
+            if (conn.down) createTeleportArrow(room.x, room.z - room.depth / 2, Math.PI, conn.down, roomName, 'down');
+            if (conn.left) createTeleportArrow(room.x - room.width / 2, room.z, Math.PI / 2, conn.left, roomName, 'left');
+            if (conn.right) createTeleportArrow(room.x + room.width / 2, room.z, -Math.PI / 2, conn.right, roomName, 'right');
+        }
+
+        // Furniture functions
+        function createBox(w, h, d, x, z, material, name = '') {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+            mesh.position.set(x, h / 2, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.userData.type = 'furniture';
+            if (name) mesh.userData.name = name;
+            scene.add(mesh);
+            return mesh;
+        }
+
+        function createCylinder(r, h, x, z, material) {
+            const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 16), material);
+            mesh.position.set(x, h / 2, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.userData.type = 'furniture';
+            scene.add(mesh);
+            return mesh;
+        }
+
+        // Create image textures using canvas
+        function createProceduralTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            switch(type) {
+                case 'tv-screen':
+                    // Create a TV show scene with sky, grass, and simple shapes
+                    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                    grad.addColorStop(0, '#87CEEB');
+                    grad.addColorStop(0.5, '#98D8E8');
+                    grad.addColorStop(1, '#90EE90');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Sun
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(400, 100, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Clouds
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(100, 80, 30, 0, Math.PI * 2);
+                    ctx.arc(140, 80, 40, 0, Math.PI * 2);
+                    ctx.arc(180, 80, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                    // House
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(200, 280, 120, 120);
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.moveTo(180, 280);
+                    ctx.lineTo(260, 220);
+                    ctx.lineTo(340, 280);
+                    ctx.fill();
+                    // Windows
+                    ctx.fillStyle = '#87CEEB';
+                    ctx.fillRect(220, 310, 30, 30);
+                    ctx.fillRect(270, 310, 30, 30);
+                    // Door
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(240, 340, 40, 60);
+                    break;
+
+                case 'sofa-fabric':
+                    // Create fabric texture with pattern
+                    ctx.fillStyle = '#4a4a4a';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Add subtle weave pattern
+                    ctx.strokeStyle = '#555555';
+                    ctx.lineWidth = 1;
+                    for(let i = 0; i < 512; i += 8) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, 512);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(512, i);
+                        ctx.stroke();
+                    }
+                    // Add some darker spots
+                    ctx.fillStyle = '#3a3a3a';
+                    for(let i = 0; i < 20; i++) {
+                        const x = Math.random() * 512;
+                        const y = Math.random() * 512;
+                        const size = Math.random() * 20 + 5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'coffee-table-wood':
+                    // Wood grain texture
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#654321';
+                    ctx.lineWidth = 2;
+                    for(let i = 0; i < 512; i += 15) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i + Math.sin(i * 0.05) * 5);
+                        ctx.lineTo(512, i + Math.sin(i * 0.05) * 5);
+                        ctx.stroke();
+                    }
+                    // Add some knots
+                    ctx.fillStyle = '#5D4037';
+                    for(let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * 512, Math.random() * 512, 10 + Math.random() * 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'rug':
+                    // Ornate rug pattern
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 8;
+                    ctx.strokeRect(30, 30, 452, 452);
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(60, 60, 392, 392);
+                    // Geometric pattern
+                    ctx.fillStyle = '#DAA520';
+                    for(let i = 0; i < 5; i++) {
+                        for(let j = 0; j < 5; j++) {
+                            ctx.beginPath();
+                            ctx.arc(80 + i * 100, 80 + j * 100, 20, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    break;
+
+                case 'books':
+                    // Colorful books
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, 512, 512);
+                    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+                    for(let i = 0; i < 30; i++) {
+                        ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                        const w = 20 + Math.random() * 30;
+                        const h = 80 + Math.random() * 120;
+                        const x = Math.random() * 400;
+                        const y = Math.random() * 350;
+                        ctx.fillRect(x, y, w, h);
+                        // Spine line
+                        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(x + w - 5, y);
+                        ctx.lineTo(x + w - 5, y + h);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'lamp-shade':
+                    // Glowing lamp shade
+                    const glowGrad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                    glowGrad.addColorStop(0, '#FFFFE0');
+                    glowGrad.addColorStop(0.5, '#FFD700');
+                    glowGrad.addColorStop(1, '#FF8C00');
+                    ctx.fillStyle = glowGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Add some texture
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    for(let i = 0; i < 50; i++) {
+                        ctx.beginPath();
+                        ctx.arc(Math.random() * 512, Math.random() * 512, Math.random() * 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'plant':
+                    // Potted plant
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(150, 280, 212, 200);
+                    // Pot rim
+                    ctx.fillStyle = '#A0522D';
+                    ctx.fillRect(140, 280, 232, 30);
+                    // Leaves
+                    ctx.fillStyle = '#228B22';
+                    for(let i = 0; i < 15; i++) {
+                        ctx.beginPath();
+                        ctx.ellipse(
+                            180 + Math.random() * 150,
+                            100 + Math.random() * 150,
+                            20 + Math.random() * 30,
+                            40 + Math.random() * 40,
+                            Math.random() * Math.PI, 0, Math.PI * 2
+                        );
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'electric-fan':
+                    // Electric standing fan with metallic grill
+                    // Base
+                    ctx.fillStyle = '#2c2c2c';
+                    ctx.beginPath();
+                    ctx.arc(256, 450, 80, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.beginPath();
+                    ctx.arc(256, 450, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Stand pole
+                    ctx.fillStyle = '#C0C0C0';
+                    ctx.fillRect(245, 150, 22, 300);
+                    // Motor housing
+                    ctx.fillStyle = '#2c2c2c';
+                    ctx.beginPath();
+                    ctx.arc(256, 180, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Grill front
+                    ctx.fillStyle = '#C0C0C0';
+                    ctx.beginPath();
+                    ctx.arc(256, 100, 70, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#E0E0E0';
+                    ctx.beginPath();
+                    ctx.arc(256, 100, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Grill spokes
+                    ctx.strokeStyle = '#A0A0A0';
+                    ctx.lineWidth = 4;
+                    for(let i = 0; i < 8; i++) {
+                        ctx.save();
+                        ctx.translate(256, 100);
+                        ctx.rotate(i * Math.PI / 4);
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(55, 0);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                    // Center hub
+                    ctx.fillStyle = '#333333';
+                    ctx.beginPath();
+                    ctx.arc(256, 100, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Brand label
+                    ctx.fillStyle = '#666666';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText('BREEZE', 200, 450);
+                    break;
+
+                case 'sofa-detailed':
+                    // Detailed sofa upholstery texture
+                    ctx.fillStyle = '#4a4a4a';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Button tufting pattern
+                    ctx.fillStyle = '#555555';
+                    for(let row = 0; row < 6; row++) {
+                        for(let col = 0; col < 10; col++) {
+                            ctx.beginPath();
+                            ctx.arc(40 + col * 45, 60 + row * 70, 12, 0, Math.PI * 2);
+                            ctx.fill();
+                            // Button depth
+                            ctx.fillStyle = '#3a3a3a';
+                            ctx.beginPath();
+                            ctx.arc(42 + col * 45, 62 + row * 70, 6, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.fillStyle = '#555555';
+                        }
+                    }
+                    break;
+
+                case 'tv-frame-detailed':
+                    // Modern TV bezel/frame
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Brushed metal frame
+                    ctx.strokeStyle = '#2a2a2a';
+                    ctx.lineWidth = 1;
+                    for(let i = 0; i < 512; i += 4) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, 512);
+                        ctx.stroke();
+                    }
+                    // Bevel edge
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(15, 15, 482, 482);
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(25, 25, 462, 462);
+                    // LED indicator
+                    ctx.fillStyle = '#00ff00';
+                    ctx.beginPath();
+                    ctx.arc(460, 30, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Brand logo area
+                    ctx.fillStyle = '#333333';
+                    ctx.fillRect(200, 460, 112, 30);
+                    break;
+
+                case 'lamp-shade-detailed':
+                    // Fabric lampshade with pattern
+                    const lampGrad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                    lampGrad.addColorStop(0, '#FFFAF0');
+                    lampGrad.addColorStop(0.5, '#FFD700');
+                    lampGrad.addColorStop(1, '#FF8C00');
+                    ctx.fillStyle = lampGrad;
+                    ctx.fillRect(0, 0, 512, 512);
+                    // Pleated folds
+                    ctx.strokeStyle = 'rgba(139, 69, 19, 0.3)';
+                    ctx.lineWidth = 3;
+                    for(let i = 0; i < 512; i += 32) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, 512);
+                        ctx.stroke();
+                    }
+                    // Top/Bottom rings
+                    ctx.fillStyle = '#FFF8DC';
+                    ctx.fillRect(0, 0, 512, 20);
+                    ctx.fillRect(0, 492, 512, 20);
+                    break;
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            return texture;
+        }
+
+        // ==================== LIVING ROOM FURNITURE ====================
+        // Sofa with real image upholstery (soft fabric texture)
+        createBox(2.2, 0.5, 0.85, 0, 1.5, sofaDetailedMaterial, 'sofa-seat');
+        createBox(2.2, 0.4, 0.3, 0, 1.9, sofaDetailedMaterial, 'sofa-back');
+        createBox(0.25, 0.45, 0.85, -1.2, 1.5, sofaDetailedMaterial, 'armrest-left');
+        createBox(0.25, 0.45, 0.85, 1.2, 1.5, sofaDetailedMaterial, 'armrest-right');
+        createBox(0.6, 0.15, 0.6, -0.5, 1.75, sofaDetailedMaterial, 'cushion-left');
+        createBox(0.6, 0.15, 0.6, 0.5, 1.75, sofaDetailedMaterial, 'cushion-right');
+
+        // Coffee table with real wood image texture
+        createBox(1.3, 0.4, 0.7, 0, -0.3, coffeeTableMaterialReal, 'coffee-table');
+        createBox(0.08, 0.35, 0.08, 0.5, -0.825, materials.furniture, 'table-leg');
+        createBox(0.08, 0.35, 0.08, -0.5, -0.825, materials.furniture, 'table-leg');
+        createBox(0.08, 0.35, 0.08, 0.5, 0.225, materials.furniture, 'table-leg');
+        createBox(0.08, 0.35, 0.08, -0.5, 0.225, materials.furniture, 'table-leg');
+
+        // TV Stand
+        createBox(1.8, 0.4, 0.5, 0, -2.3, materials.furniture, 'tv-stand');
+
+        // TV with real image frame (modern flat-screen) + animated screen
+        const tvFrame = createBox(1.6, 0.9, 0.15, 0, -2.7, tvFrameDetailedMaterial, 'tv-frame');
+        const tvScreen = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.48, 0.82),
+            tvScreenMaterial
+        );
+        tvScreen.position.set(0, -2.7, 0.08);
+        tvScreen.rotation.y = Math.PI;
+        scene.add(tvScreen);
+
+        // Rug with real image texture
+        createBox(2.5, 0.02, 2, 0, -0.01, rugMaterialReal, 'rug');
+
+        // Bookshelf with real wood image
+        createBox(2.0, 2.2, 0.6, -2.2, 1.5, bookshelfMaterialReal, 'bookshelf');
+        createBox(1.9, 0.05, 0.55, -2.2, 0.8, bookshelfMaterialReal, 'shelf');
+        createBox(1.9, 0.05, 0.55, -2.2, 1.8, bookshelfMaterialReal, 'shelf');
+        // Colorful books (keep these, they're decorative)
+        for(let i = 0; i < 12; i++) {
+            const bw = 0.25 + Math.random() * 0.15;
+            const bh = 0.35 + Math.random() * 0.6;
+            const bx = -2.75 + Math.random() * 0.9;
+            const by = 0.25 + Math.random() * 1.4;
+            createBox(bw, bh, 0.08, bx, by, booksMaterials[Math.floor(Math.random() * booksMaterials.length)], 'book');
+        }
+
+        // Electric Standing Fan with real image grill (animated blades)
+        const fanGroup = new THREE.Group();
+        // Base
+        const fanBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.08, 16), fanBaseMaterial);
+        fanBase.position.y = 0.04;
+        fanBase.castShadow = true;
+        fanBase.receiveShadow = true;
+        fanGroup.add(fanBase);
+        // Stand pole
+        const fanPole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 8), fanBaseMaterial);
+        fanPole.position.y = 0.65;
+        fanPole.castShadow = true;
+        fanGroup.add(fanPole);
+        // Motor housing
+        const fanMotor = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.35, 16), fanGrillMaterial);
+        fanMotor.position.y = 1.25;
+        fanMotor.castShadow = true;
+        fanGroup.add(fanMotor);
+        // Grill front (real image texture)
+        const fanGrill = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 16), fanGrillMaterial);
+        fanGrill.position.y = 1.45;
+        fanGrill.rotation.x = Math.PI / 2;
+        fanGrill.castShadow = true;
+        fanGroup.add(fanGrill);
+        // Blade cage (inner)
+        const fanCage = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.15, 8), new THREE.MeshStandardMaterial({ color: 0xC0C0C0, roughness: 0.3, metalness: 0.7 }));
+        fanCage.position.y = 1.45;
+        fanCage.rotation.x = Math.PI / 2;
+        fanCage.castShadow = true;
+        fanGroup.add(fanCage);
+        // Blades group (rotating - black plastic)
+        const fanBladesGroup = new THREE.Group();
+        for(let i = 0; i < 3; i++) {
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.35), fanBladesMaterial);
+            blade.rotation.y = i * (2 * Math.PI / 3);
+            blade.position.z = 0.12;
+            blade.castShadow = true;
+            fanBladesGroup.add(blade);
+        }
+        fanBladesGroup.position.y = 1.45;
+        fanBladesGroup.rotation.x = Math.PI / 2;
+        fanGroup.add(fanBladesGroup);
+        fanGroup.position.set(2.8, 0, -2.2);
+        fanGroup.rotation.y = Math.PI / 2; // Face toward room
+        scene.add(fanGroup);
+        spinningFans.push(fanBladesGroup);
+
+        // Floor lamp with real fabric shade image and glow
+        createCylinder(0.08, 1.5, 2.2, 1.5, materials.metal, 'lamp-pole');
+        createCylinder(0.15, 0.1, 2.2, 1.1, materials.metal, 'lamp-base');
+        createBox(0.5, 0.4, 0.5, 2.2, 1.75, lampShadeDetailedMaterial, 'lamp-shade');
+        // Add actual light from floor lamp
+        const floorLampLight = new THREE.PointLight(0xFFD700, 0.8, 8);
+        floorLampLight.position.set(2.2, 1.95, 1.5);
+        floorLampLight.castShadow = true;
+        scene.add(floorLampLight);
+
+        // Potted plant
+        createBox(0.5, 0.5, 0.5, 1.5, 2.0, plantPotMaterial, 'pot');
+        createBox(0.45, 0.6, 0.45, 1.5, 2.55, plantLeavesMaterial, 'plant');
+
+        // Decorative wall clock
+        createBox(0.6, 0.6, 0.05, -2.8, -1.5, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), 'clock');
+        createCylinder(0.18, 0.1, -2.8, -1.5, new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8 }), 'clock-face');
+        createBox(0.25, 0.03, 0.02, -2.65, -1.45, new THREE.MeshStandardMaterial({ color: 0x333333 }), 'hour-hand');
+        createBox(0.35, 0.02, 0.02, -2.55, -1.45, new THREE.MeshStandardMaterial({ color: 0x333333 }), 'minute-hand');
+
+        // Side table with lamp (detailed shade)
+        createBox(0.5, 0.6, 0.5, 1.8, 1.5, materials.wood, 'side-table');
+        createCylinder(0.1, 0.7, 1.8, 2.1, materials.metal, 'table-lamp-pole');
+        createBox(0.25, 0.15, 0.25, 1.8, 2.45, lampShadeDetailedMaterial, 'table-lamp-shade');
+        // Light from table lamp
+        const tableLampLight = new THREE.PointLight(0xFFD700, 0.5, 5);
+        tableLampLight.position.set(1.8, 2.3, 2.1);
+        scene.add(tableLampLight);
+
+        // ==================== KITCHEN FURNITURE ====================
+        // Kitchen countertops (L-shaped layout) - white
+        createBox(5.0, 0.9, 0.6, -1.0, -7.4, materials.kitchen, 'counter-main');
+        createBox(0.6, 0.9, 2.5, 2.8, -6.0, materials.kitchen, 'counter-right');
+        createBox(4.8, 1.7, 0.3, -1.0, -7.6, materials.kitchen, 'upper-cabinet');
+
+        // Gas stove (real image texture) on counter
+        createBox(0.8, 0.15, 0.5, -1.0, -6.8, gasStoveMaterial, 'gas-stove');
+        // Burner rings (black)
+        createCylinder(0.15, 0.02, -0.8, -6.8, new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }), 'burner-left');
+        createCylinder(0.15, 0.02, -1.2, -6.8, new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }), 'burner-right');
+        // Control knobs
+        createCylinder(0.06, 0.08, -0.6, -6.5, new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5 }), 'knob1');
+        createCylinder(0.06, 0.08, -1.4, -6.5, new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5 }), 'knob2');
+
+        // Refrigerator (real image texture) - stainless steel
+        createBox(1.0, 2.5, 0.8, -3.0, -6.0, refrigeratorMaterial, 'fridge');
+        // Freezer compartment
+        createBox(1.0, 0.6, 0.05, -3.0, -4.1, new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3 }), 'fridge-top');
+        // Door handles
+        createBox(0.02, 0.3, 0.5, -3.5, -6.0, new THREE.MeshStandardMaterial({ color: 0xC0C0C0, metalness: 0.8 }), 'fridge-handle-left');
+        createBox(0.02, 0.3, 0.5, -2.5, -6.0, new THREE.MeshStandardMaterial({ color: 0xC0C0C0, metalness: 0.8 }), 'fridge-handle-right');
+
+        // Kitchen sink
+        createBox(0.8, 0.15, 0.5, 0.0, -6.8, materials.metal, 'sink');
+        createBox(0.1, 0.5, 0.1, 0.0, -6.3, materials.metal, 'faucet');
+
+        // Kitchen table (real image texture) with chairs
+        createBox(1.5, 0.8, 1.0, 1.5, -5.0, kitchenTableMaterial, 'kitchen-table');
+        // Table legs
+        createBox(0.08, 0.75, 0.08, 1.0, -4.6, materials.furniture, 'table-leg-fl');
+        createBox(0.08, 0.75, 0.08, 2.0, -4.6, materials.furniture, 'table-leg-fr');
+        createBox(0.08, 0.75, 0.08, 1.0, -5.4, materials.furniture, 'table-leg-bl');
+        createBox(0.08, 0.75, 0.08, 2.0, -5.4, materials.furniture, 'table-leg-br');
+
+        // Plates on table (real image texture) - two plates
+        createBox(0.35, 0.02, 0.35, 1.5, -4.2, platesMaterial, 'plate1');
+        createBox(0.35, 0.02, 0.35, 1.8, -4.2, platesMaterial, 'plate2');
+
+        // Chairs
+        // Chair 1
+        createBox(0.5, 0.9, 0.5, 0.8, -3.5, materials.furniture, 'chair1-seat');
+        createBox(0.05, 0.9, 0.05, 0.8, -3.5, materials.furniture, 'chair1-leg1');
+        createBox(0.05, 0.9, 0.05, 1.1, -3.5, materials.furniture, 'chair1-leg2');
+        createBox(0.05, 0.45, 0.05, 0.65, -2.8, materials.furniture, 'chair1-back');
+        // Chair 2
+        createBox(0.5, 0.9, 0.5, 2.2, -3.5, materials.furniture, 'chair2-seat');
+        createBox(0.05, 0.9, 0.05, 2.2, -3.5, materials.furniture, 'chair2-leg1');
+        createBox(0.05, 0.9, 0.05, 2.5, -3.5, materials.furniture, 'chair2-leg2');
+        createBox(0.05, 0.45, 0.05, 2.05, -2.8, materials.furniture, 'chair2-back');
+
+        // Wall-mounted airconditioner
+        createBox(0.8, 0.5, 0.2, -2.8, -4.5, airconMaterial, 'kitchen-ac');
+
+        // ==================== BEDROOM FURNITURE ====================
+        // Master bed with real image texture (comfortor, pillows, mattress)
+        // Bed frame
+        createBox(2.3, 0.35, 2.4, 0, 5, materials.furniture, 'bed-frame');
+        // Mattress with bedding (image-textured duvet)
+        createBox(2.15, 0.35, 2.15, 0, 5.4, masterBedMaterial, 'mattress');
+        // Duvet/comforter (image-textured)
+        createBox(2.1, 0.15, 2.1, 0, 5.55, masterBedMaterial, 'duvet');
+        // Pillows (image-textured)
+        createBox(0.65, 0.18, 0.45, -0.55, 5.75, pillowMaterial, 'pillow-left');
+        createBox(0.65, 0.18, 0.45, 0.55, 5.75, pillowMaterial, 'pillow-right');
+
+        // Small sofa in bedroom (image-textured)
+        createBox(1.8, 0.4, 0.7, -2.0, 5.0, bedroomSofaMaterial, 'bedroom-sofa');
+        createBox(0.2, 0.35, 0.7, -2.4, 5.0, bedroomSofaMaterial, 'sofa-arm-left');
+        createBox(0.2, 0.35, 0.7, -1.6, 5.0, bedroomSofaMaterial, 'sofa-arm-right');
+
+        // Study desk with real wood image
+        createBox(1.4, 0.75, 0.7, -1.8, 4.5, deskWoodMaterial, 'desk');
+        // Desk legs
+        createBox(0.05, 0.75, 0.05, -1.2, 4.5, materials.furniture, 'desk-leg');
+        createBox(0.05, 0.75, 0.05, -2.4, 4.5, materials.furniture, 'desk-leg');
+        // PC Tower (with image texture)
+        createBox(0.5, 0.6, 0.5, -1.8, 3.8, pcTowerMaterial, 'pc-tower');
+        // PC Monitor with image screen
+        const monitorStand = createBox(0.25, 0.3, 0.25, -1.8, 4.95, materials.furniture, 'monitor-stand');
+        const monitorBezel = new THREE.Mesh(
+            new THREE.BoxGeometry(0.95, 0.55, 0.04),
+            new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.7 })
+        );
+        monitorBezel.position.set(-1.8, 5.0, 4.5);
+        scene.add(monitorBezel);
+        const monitorScreen = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.88, 0.49),
+            pcScreenMaterial
+        );
+        monitorScreen.position.set(-1.8, 5.0, 4.48);
+        scene.add(monitorScreen);
+        // Keyboard
+        createBox(0.4, 0.02, 0.15, -1.8, 4.8, new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 }), 'keyboard');
+        // Mouse
+        createBox(0.06, 0.02, 0.1, -1.5, 4.8, new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 }), 'mouse');
+
+        // Bedside table (wood texture)
+        createBox(0.55, 0.6, 0.55, -1.5, 5, deskWoodMaterial, 'nightstand');
+        // Lamp on bedside table
+        createCylinder(0.08, 0.4, -1.5, 5.6, materials.metal, 'bedside-lamp-pole');
+        createBox(0.22, 0.12, 0.22, -1.5, 5.95, lampShadeMaterial, 'bedside-lamp-shade');
+        // Bedside lamp light
+        const bedsideLight = new THREE.PointLight(0xFFD700, 0.4, 4);
+        bedsideLight.position.set(-1.5, 6.0, 5.6);
+        scene.add(bedsideLight);
+
+        // Wardrobe / Cabinet (image-textured wood)
+        createBox(2.2, 2.3, 0.75, 1.8, 5, cabinetWoodMaterial, 'wardrobe');
+        // Wardrobe doors
+        createBox(0.05, 2.1, 0.65, 1.55, 5, materials.furniture, 'wardrobe-door-left');
+        createBox(0.05, 2.1, 0.65, 2.05, 5, materials.furniture, 'wardrobe-door-right');
+        // Door handles
+        createCylinder(0.04, 0.15, 1.55, 4.5, materials.metal, 'handle-left');
+        createCylinder(0.04, 0.15, 2.05, 4.5, materials.metal, 'handle-right');
+        // Mirror on wardrobe
+        createBox(0.9, 1.2, 0.04, 1.8, 5, new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.0, metalness: 0.9 }), 'mirror');
+
+        // Wall Air Conditioner (image-textured)
+        const airconUnit = createBox(0.8, 0.5, 0.2, -2.8, 3.3, airconBedroomMaterial, 'aircon');
+        airconUnit.rotation.y = Math.PI / 2;
+
+        // BATHROOM
+        // Bathtub (real image texture)
+        createBox(1.5, 0.6, 0.8, 6, 0.5, bathtubMaterial, 'bathtub');
+        createBox(1.4, 0.3, 0.6, 6, 0.2, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.0 }), 'tub-inner');
+        // Sink (real image texture)
+        createBox(0.7, 0.05, 0.5, 6, -1.3, sinkMaterial, 'sink-bowl');
+        createBox(0.1, 0.4, 0.1, 5.7, -1.5, materials.metal, 'faucet');
+        // Toilet (real image texture)
+        createCylinder(0.35, 0.45, 5.3, -1.5, toiletMaterial, 'toilet');
+        createCylinder(0.25, 0.05, 5.3, -1.2, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), 'toilet-seat');
+
+        // Lighting
+        function createCeilingLight(x, z, roomName) {
+            const light = new THREE.PointLight(0xffffee, 1.0, 10);
+            light.position.set(x, wallHeight - 0.3, z);
+            light.castShadow = true;
+            light.shadow.bias = -0.001;
+            scene.add(light);
+
+            const fixture = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.15, 0.1, 8),
+                new THREE.MeshStandardMaterial({
+                    color: 0xffff00,
+                    emissive: 0xffffee,
+                    emissiveIntensity: 0.8,
+                    metalness: 0.5
+                })
+            );
+            fixture.position.set(x, wallHeight - 0.05, z);
+            scene.add(fixture);
+        }
+
+        createCeilingLight(0, 0, 'Living Room');
+        createCeilingLight(-2, -5, 'Kitchen');
+        createCeilingLight(0, 5, 'Bedroom');
+        createCeilingLight(6, -1, 'Bathroom');
+
+        // Ambient light
+        const ambientLight = new THREE.AmbientLight(0x404050, 0.4);
+        scene.add(ambientLight);
+
+        // Raycaster for teleport
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let canTeleport = false;
+        let targetArrow = null;
+        let lastInteractionTime = 0;
+
+        function checkTeleportTarget() {
+            mouse.x = 0;
+            mouse.y = 0;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            for (const intersect of intersects) {
+                let obj = intersect.object;
+                if (obj.userData && obj.userData.type === 'teleportArrow') {
+                    canTeleport = true;
+                    targetArrow = obj;
+                    return true;
+                }
+                // Traverse up to find parent
+                while (obj.parent && obj.parent !== scene) {
+                    obj = obj.parent;
+                    if (obj.userData && obj.userData.type === 'teleportArrow') {
+                        canTeleport = true;
+                        targetArrow = obj;
+                        return true;
+                    }
+                }
+            }
+            canTeleport = false;
+            targetArrow = null;
+            return false;
+        }
+
+        // Camera pointer lock
+        const container = document.getElementById('container');
+
+        container.addEventListener('click', () => {
+            container.requestPointerLock();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            isPointerLocked = document.pointerLockElement === container;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isPointerLocked) {
+                camera.rotation.y -= e.movementX * lookSensitivity;
+                camera.rotation.x -= e.movementY * lookSensitivity;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            }
+        });
+
+        // // Rotation button controls
+        // const rotateLeftBtn = document.getElementById('rotate-left');
+        // const rotateRightBtn = document.getElementById('rotate-right');
+
+        // rotateLeftBtn.addEventListener('mousedown', () => isRotatingLeft = true);
+        // rotateLeftBtn.addEventListener('mouseup', () => isRotatingLeft = false);
+        // rotateLeftBtn.addEventListener('mouseleave', () => isRotatingLeft = false);
+        // rotateLeftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); isRotatingLeft = true; });
+        // rotateLeftBtn.addEventListener('touchend', (e) => { e.preventDefault(); isRotatingLeft = false; });
+
+        // rotateRightBtn.addEventListener('mousedown', () => isRotatingRight = true);
+        // rotateRightBtn.addEventListener('mouseup', () => isRotatingRight = false);
+        // rotateRightBtn.addEventListener('mouseleave', () => isRotatingRight = false);
+        // rotateRightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); isRotatingRight = true; });
+        // rotateRightBtn.addEventListener('touchend', (e) => { e.preventDefault(); isRotatingRight = false; });
+
+        // Keyboard movement
+        document.addEventListener('keydown', (e) => {
+            // Prevent arrow keys from scrolling the page
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+                e.preventDefault();
+            }
+            switch (e.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = true; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = true; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
+                case 'KeyD': case 'ArrowRight': moveRight = true; break;
+                case 'KeyE':
+                    if (canTeleport && targetArrow) {
+                        teleportToRoom(targetArrow.userData.targetRoom);
+                    }
+                    break;
+                // Number key shortcuts for instant teleport
+                case 'Digit1':
+                    teleportToRoom('Kitchen');
+                    break;
+                case 'Digit2':
+                    teleportToRoom('Living Room');
+                    break;
+                case 'Digit3':
+                    teleportToRoom('Bedroom');
+                    break;
+                case 'Digit4':
+                    teleportToRoom('Bathroom');
+                    break;
+                case 'KeyX':
+                    window.location.href = 'index.html';
+                    break;
+                // Rotation shortcuts (comma/period)
+                case 'Comma':
+                    isRotatingLeft = true;
+                    break;
+                case 'Period':
+                    isRotatingRight = true;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = false; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = false; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
+                case 'KeyD': case 'ArrowRight': moveRight = false; break;
+                case 'Comma':
+                    isRotatingLeft = false;
+                    break;
+                case 'Period':
+                    isRotatingRight = false;
+                    break;
+            }
+        });
+
+        // Check for collisions with walls
+        function checkCollision(newPos, roomName) {
+            const room = rooms[roomName];
+            if (!room) return true;
+
+            const margin = 0.5;
+            const minX = room.x - room.width / 2 + margin;
+            const maxX = room.x + room.width / 2 - margin;
+            const minZ = room.z - room.depth / 2 + margin;
+            const maxZ = room.z + room.depth / 2 - margin;
+
+            return newPos.x < minX || newPos.x > maxX || newPos.z < minZ || newPos.z > maxZ;
+        }
+
+        // Teleport function
+        function teleportToRoom(roomName) {
+            const room = rooms[roomName];
+            if (!room) return;
+
+            currentRoom = roomName;
+            document.getElementById('room-label').textContent = roomName;
+
+            camera.position.set(room.startPos.x, 1.6, room.startPos.z);
+            camera.rotation.set(0, 0, 0);
+
+            // Update prompt
+            const prompt = document.getElementById('interaction-prompt');
+            prompt.classList.remove('visible');
+
+            // Flash effect
+            scene.background = new THREE.Color(0xffffff);
+            setTimeout(() => {
+                scene.background = new THREE.Color(0x0a0a0f);
+            }, 100);
+        }
+
+        // Animate arrows
+        function animateArrows(time) {
+            teleportArrows.forEach(arrow => {
+                arrow.children.forEach(child => {
+                    if (child.material.emissive) {
+                        child.material.emissiveIntensity = 0.3 + Math.sin(time * 3) * 0.2;
+                    }
+                });
+                // Gentle bobbing
+                arrow.position.y = 0.05 + Math.sin(time * 2) * 0.05;
+            });
+        }
+
+        // Update crosshair color and target room indicator
+        function updateCrosshair() {
+            const xhair = document.getElementById('crosshair');
+            const targetIndicator = document.getElementById('target-room-indicator');
+            if (canTeleport && targetArrow) {
+                xhair.style.borderColor = '#00ff88';
+                xhair.style.boxShadow = '0 0 10px #00ff88';
+                document.getElementById('interaction-prompt').classList.add('visible');
+                // Show target room name in indicator
+                targetIndicator.textContent = `Go to → ${targetArrow.userData.targetRoom}`;
+                targetIndicator.classList.add('visible');
+            } else {
+                xhair.style.borderColor = 'rgba(255,255,255,0.6)';
+                xhair.style.boxShadow = 'none';
+                document.getElementById('interaction-prompt').classList.remove('visible');
+                targetIndicator.classList.remove('visible');
+            }
+        }
+
+        // Minimap
+        const minimapCanvas = document.getElementById('minimap-canvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+        minimapCanvas.width = 180;
+        minimapCanvas.height = 180;
+
+        function drawMinimap() {
+            minimapCtx.fillStyle = '#0a0a0f';
+            minimapCtx.fillRect(0, 0, 180, 180);
+
+            const scale = 15;
+            const centerX = 90;
+            const centerY = 90;
+
+            for (const [name, room] of Object.entries(rooms)) {
+                // Room rectangle
+                minimapCtx.fillStyle = name === currentRoom ? '#00ff88' : '#333344';
+                minimapCtx.globalAlpha = 0.7;
+                minimapCtx.fillRect(
+                    centerX + room.x * scale - room.width * scale / 2,
+                    centerY + room.z * scale - room.depth * scale / 2,
+                    room.width * scale,
+                    room.depth * scale
+                );
+
+                // Room label (full name)
+                minimapCtx.globalAlpha = 1;
+                minimapCtx.fillStyle = name === currentRoom ? '#00ff88' : '#ffffff';
+                minimapCtx.font = 'bold 9px Arial';
+                minimapCtx.textAlign = 'center';
+                minimapCtx.textBaseline = 'middle';
+                const labelX = centerX + room.x * scale;
+                const labelY = centerY + room.z * scale;
+                minimapCtx.fillText(name, labelX, labelY);
+            }
+
+            // Player position and direction
+            const camX = centerX + camera.position.x * scale;
+            const camZ = centerY + camera.position.z * scale;
+            minimapCtx.fillStyle = '#ff4444';
+            minimapCtx.beginPath();
+            minimapCtx.arc(camX, camZ, 5, 0, Math.PI * 2);
+            minimapCtx.fill();
+
+            // Direction indicator
+            minimapCtx.strokeStyle = '#ff4444';
+            minimapCtx.lineWidth = 2;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(camX, camZ);
+            const dirLen = 10;
+            minimapCtx.lineTo(
+                camX - Math.sin(camera.rotation.y) * dirLen,
+                camZ - Math.cos(camera.rotation.y) * dirLen
+            );
+            minimapCtx.stroke();
+        }
+
+        // Animation loop
+        const clock = new THREE.Clock();
+        let lastTime = 0;
+
+        function animate() {
+            const time = clock.getElapsedTime();
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            // Movement with proper delta scaling
+            velocity.x -= velocity.x * 10.0 * delta;
+            velocity.z -= velocity.z * 10.0 * delta;
+
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+
+            if (direction.length() > 0) {
+                direction.normalize();
+                if (moveForward || moveBackward) {
+                    velocity.z -= direction.z * movementSpeed * delta;
+                }
+                if (moveLeft || moveRight) {
+                    velocity.x -= direction.x * movementSpeed * delta;
+                }
+            }
+
+            // Calculate new position (velocity already includes delta)
+            const moveX = velocity.x;
+            const moveZ = velocity.z;
+
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            forward.y = 0;
+            forward.normalize();
+
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+            right.y = 0;
+            right.normalize();
+
+            const newPos = camera.position.clone();
+            if (moveForward || moveBackward) {
+                newPos.addScaledVector(forward, moveZ);
+            }
+            if (moveLeft || moveRight) {
+                newPos.addScaledVector(right, moveX);
+            }
+
+            // Check collision with walls
+            if (!checkCollision(newPos, currentRoom)) {
+                camera.position.copy(newPos);
+            }
+
+            // Update camera height (y is fixed at 1.6)
+            camera.position.y = 1.6;
+
+            // Handle camera rotation from buttons
+            if (isRotatingLeft) {
+                camera.rotation.y += rotationSpeed;
+            }
+            if (isRotatingRight) {
+                camera.rotation.y -= rotationSpeed;
+            }
+
+            // Check for teleport arrow interaction
+            checkTeleportTarget();
+            updateCrosshair();
+
+            // Animate arrows
+            animateArrows(time);
+
+            // Rotate fan blades
+            spinningFans.forEach(blades => {
+                blades.rotation.z -= 0.15; // Spin speed
+            });
+
+            renderer.render(scene, camera);
+            drawMinimap();
+            requestAnimationFrame(animate);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start
+        teleportToRoom('Living Room');
+        animate();
+    </script>
+</body>
+</html>

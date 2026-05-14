@@ -66,7 +66,8 @@
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-page="units">
+                <a href="#" class="nav-item" onclick="window.location.href='condominium-visualization.html'">
+                <!-- <a href="#" class="nav-item" data-page="units"> -->
                     <i class="fas fa-cube"></i>
                     <span>3D Condo Unit Visualization</span>
                 </a>
@@ -82,13 +83,21 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </a> -->
-                <!-- <a href="#" class="nav-item" data-page="marketplace">
+                <a href="#" class="nav-item" data-page="marketplace">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Marketplace</span>
-                </a> -->
+                </a>
+                <a href="#" class="nav-item" data-page="announcements">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </a>
                 <a href="#" class="nav-item" data-page="events">
                     <i class="fas fa-calendar-day"></i>
                     <span>Events</span>
+                </a>
+                <a href="#" class="nav-item" data-page="records">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Records</span>
                 </a>
                 <a href="#" class="nav-item" data-page="visitors">
                     <i class="fas fa-users"></i>
@@ -98,6 +107,11 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
+                <!-- <a href="#" class="nav-item admin-only" data-page="users" id="navUsers"> -->
+                <!-- <a href="#" class="nav-item" data-page="users">
+                    <i class="fas fa-users-cog"></i>
+                    <span>User Management</span>
+                </a> -->
                 <!-- <a href="admin-reservations.html" class="nav-item">
                     <i class="fas fa-tasks"></i>
                     <span>Admin: Reservations</span>
@@ -112,20 +126,38 @@
         </aside>
 
         <main class="main-content">
-            <!-- <header class="top-bar">
+            <header class="top-bar">
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
+
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
+                    <input type="text" id="globalSearchInput" placeholder="Search...">
                 </div>
+
                 <div class="header-actions">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </button>
-                     <div class="user-profile" id="userProfile">
+                    <div class="notification-wrapper">
+                        <button class="notification-btn" id="globalNotificationBtn" aria-label="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge" id="globalNotificationBadge" style="display:none;">0</span>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown" style="display:none;">
+                            <div class="dropdown-header">
+                                <h4>All Notifications</h4>
+                            </div>
+                            <div class="notification-list" id="notificationList">
+                                <!-- Notifications loaded by JS -->
+                            </div>
+                             <div class="dropdown-footer">
+                                 <a href="#" class="view-all" data-page="announcements">
+                                     View all announcements <i class="fas fa-arrow-right"></i>
+                                 </a>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="user-profile" id="userProfile">
                         <div class="avatar" id="userAvatar">G</div>
                         <div class="user-info">
                             <span class="name" id="userName">Guest</span>
@@ -133,7 +165,7 @@
                         </div>
                     </div>
                 </div>
-            </header> -->
+            </header>
 
             <div class="content-area">
                 <div class="page" id="dashboard-page">
@@ -540,6 +572,47 @@
                     </div>
                 </div> -->
 
+                <div class="page hidden" id="records-page">
+                    <div class="page-header">
+                        <h1>Records</h1>
+                        <p>Manage community records</p>
+                    </div>
+                    <div class="records-container">
+                        <!-- Record Form -->
+                        <div class="record-form-card">
+                            <h3><span id="formTitle">Add New Record</span></h3>
+                            <br>
+                            <form id="recordForm">
+                                <input type="hidden" id="recordId">
+                                <div class="form-group">
+                                    <label>Item</label>
+                                    <input type="text" id="recordItem" placeholder="Enter item name" required>
+                                </div> <br>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="recordDescription" placeholder="Enter description" required></textarea>
+                                </div> <br>
+                                <div class="form-group">
+                                    <label>Remarks</label>
+                                    <textarea id="recordRemarks" placeholder="Enter remarks (optional)"></textarea>
+                                </div> <br>
+                                <div class="form-buttons">
+                                    <button type="submit" class="submit-btn" id="saveRecordBtn">Save Record</button>
+                                    <button type="button" class="cancel-btn" id="cancelEditBtn" style="display:none;">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Records List -->
+                        <div class="records-section">
+                            <h3>All Records</h3>
+                            <div class="records-list" id="recordsListContainer">
+                                <!-- Records loaded from Firestore -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="page hidden" id="visitors-page">
                     <div class="page-header">
                         <h1>Visitors</h1>
@@ -670,96 +743,147 @@
                         <p>Buy and sell items within the condominium community</p>
                     </div>
                     <div class="marketplace-container">
+                        <!-- Add Listing Form -->
+                        <div class="listing-form-card">
+                            <h3>Post New Listing</h3> <br>
+                            <form id="listingForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Item Title</label>
+                                        <input type="text" id="listingTitle" placeholder="What are you selling?" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select id="listingCategory" required>
+                                            <option value="">Select category</option>
+                                            <option value="Electronics">Electronics</option>
+                                            <option value="Furniture">Furniture</option>
+                                            <option value="Appliances">Appliances</option>
+                                            <option value="Clothing">Clothing</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div> <br>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Price (₱)</label>
+                                        <input type="number" id="listingPrice" placeholder="0.00" min="0" step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Condition</label>
+                                        <select id="listingCondition" required>
+                                            <option value="">Select condition</option>
+                                            <option value="New">New</option>
+                                            <option value="Like New">Like New</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Fair">Fair</option>
+                                        </select>
+                                    </div>
+                                </div> <br>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="listingDescription" placeholder="Describe your item, features, dimensions, etc..." required></textarea>
+                                </div> <br>
+                                <button type="submit" class="submit-btn" id="createListingBtn">
+                                    <span class="btn-text">Post Listing</span>
+                                    <span class="btn-loader" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Filters -->
                         <div class="marketplace-filters">
                             <div class="search-filter">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search items...">
+                                <input type="text" id="searchListings" placeholder="Search items...">
                             </div>
                             <div class="category-filter">
-                                <button class="category-btn active">All</button>
-                                <button class="category-btn">Electronics</button>
-                                <button class="category-btn">Furniture</button>
-                                <button class="category-btn">Appliances</button>
-                                <button class="category-btn">Clothing</button>
-                                <button class="category-btn">Others</button>
+                                <button class="category-btn active" data-category="All">All</button>
+                                <button class="category-btn" data-category="Electronics">Electronics</button>
+                                <button class="category-btn" data-category="Furniture">Furniture</button>
+                                <button class="category-btn" data-category="Appliances">Appliances</button>
+                                <button class="category-btn" data-category="Clothing">Clothing</button>
+                                <button class="category-btn" data-category="Other">Other</button>
                             </div>
                         </div>
-                        <div class="marketplace-listings">
-                            <div class="listing-card">
-                                <div class="listing-image">
-                                    <i class="fas fa-couch"></i>
-                                </div>
-                                <div class="listing-info">
-                                    <span class="listing-category">Furniture</span>
-                                    <h4>Modern Sofa Set</h4>
-                                    <p>Lightly used 3-seater sofa in excellent condition</p>
-                                    <div class="listing-meta">
-                                        <span class="seller">Unit 1205</span>
-                                        <span class="date">Posted 2 days ago</span>
-                                    </div>
-                                    <div class="listing-price">
-                                        <span class="price">₱15,000</span>
-                                        <button class="contact-btn">Contact Seller</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="listing-card">
-                                <div class="listing-image">
-                                    <i class="fas fa-laptop"></i>
-                                </div>
-                                <div class="listing-info">
-                                    <span class="listing-category">Electronics</span>
-                                    <h4>MacBook Pro 2023</h4>
-                                    <p>13-inch, M2 chip, 256GB SSD, like new</p>
-                                    <div class="listing-meta">
-                                        <span class="seller">Unit 0802</span>
-                                        <span class="date">Posted 1 week ago</span>
-                                    </div>
-                                    <div class="listing-price">
-                                        <span class="price">₱65,000</span>
-                                        <button class="contact-btn">Contact Seller</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="listing-card">
-                                <div class="listing-image">
-                                    <i class="fas fa-blender"></i>
-                                </div>
-                                <div class="listing-info">
-                                    <span class="listing-category">Appliances</span>
-                                    <h4>Blender & Juicer Set</h4>
-                                    <p>Multi-functional kitchen appliance, barely used</p>
-                                    <div class="listing-meta">
-                                        <span class="seller">Unit 1501</span>
-                                        <span class="date">Posted 3 days ago</span>
-                                    </div>
-                                    <div class="listing-price">
-                                        <span class="price">₱3,500</span>
-                                        <button class="contact-btn">Contact Seller</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="listing-card">
-                                <div class="listing-image">
-                                    <i class="fas fa-tshirt"></i>
-                                </div>
-                                <div class="listing-info">
-                                    <span class="listing-category">Clothing</span>
-                                    <h4>Designer Jacket</h4>
-                                    <p>Size M, Brand new with tags</p>
-                                    <div class="listing-meta">
-                                        <span class="seller">Unit 1103</span>
-                                        <span class="date">Posted 5 days ago</span>
-                                    </div>
-                                    <div class="listing-price">
-                                        <span class="price">₱4,500</span>
-                                        <button class="contact-btn">Contact Seller</button>
-                                    </div>
-                                </div>
+
+                        <!-- Listings List -->
+                        <div class="marketplace-listings-section">
+                            <h3>All Listings</h3>
+                            <div class="marketplace-listings" id="marketplaceListingsContainer">
+                                <!-- Listings loaded from Firestore -->
                             </div>
                         </div>
-                        <div class="add-listing">
-                            <button class="add-listing-btn"><i class="fas fa-plus"></i> Add New Listing</button>
+                    </div>
+                </div>
+
+                <div class="page hidden" id="announcements-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h1>Announcements</h1>
+                            <p>Create and view community announcements</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="notification-btn" id="announcementNotificationBtn">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge" id="announcementBadge" style="display: none;">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="announcements-container">
+                        <div class="announcement-form-card">
+                            <h3>Create New Announcement</h3> <br>
+                            <form id="announcementForm">
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" id="announcementTitle" placeholder="Announcement title" required>
+                                </div> <br>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select id="announcementCategory" required>
+                                            <option value="">Select category</option>
+                                            <option value="General">General</option>
+                                            <option value="Urgent">Urgent</option>
+                                            <option value="Maintenance">Maintenance</option>
+                                            <option value="Event">Event</option>
+                                            <option value="Security">Security</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Priority</label>
+                                        <select id="announcementPriority" required>
+                                            <option value="Normal">Normal</option>
+                                            <option value="Important">Important</option>
+                                            <option value="Critical">Critical</option>
+                                        </select>
+                                    </div>
+                                </div> <br>
+                                <div class="form-group">
+                                    <label>Content</label>
+                                    <textarea id="announcementContent" placeholder="Announcement details..." required></textarea>
+                                </div> <br>
+                                <button type="submit" class="submit-btn" id="createAnnouncementBtn">
+                                    <span class="btn-text">Post Announcement</span>
+                                    <span class="btn-loader" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Announcements List -->
+                        <div class="announcements-section">
+                            <div class="announcements-list">
+                                <h3>Recent Announcements</h3>
+                            </div> <br>
+
+                            <div class="announcements-container" id="announcementsContainer">
+                                <!-- Announcements loaded from Firestore -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -866,8 +990,83 @@
                         </div>
                     </div>
                 </div>
-        </main>
-    </div>
+
+            <!-- User Management Page (Admin Only) -->
+                <div class="page hidden" id="users-page">
+                    <div class="page-header">
+                        <h1>User Management</h1>
+                        <p>Admin: Create, edit, view, and manage system users</p>
+                    </div>
+
+                    <div class="users-container">
+                        <div class="card user-form-card">
+                            <div class="card-header">
+                                <h3 id="formTitle">Add New User</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="addUserForm">
+                                    <input type="hidden" id="editUserId">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>First Name</label>
+                                            <input type="text" id="addFirstName" placeholder="Enter first name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Email Address</label>
+                                            <input type="email" id="addEmail" placeholder="Enter email" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Password</label>
+                                            <input type="password" id="addPassword" placeholder="Enter password" required>
+                                            <small style="color: var(--text-muted); font-size: 0.8em;">Leave blank when editing to keep current</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Role</label>
+                                            <select id="addRole">
+                                                <option value="user">User</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-buttons">
+                                        <button type="button" class="submit-btn" id="submitUserBtn">➣ Create User</button>
+                                        <button type="button" class="cancel-btn" id="cancelEditBtn" style="display: none;">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card users-list-card">
+                            <div class="card-header">
+                                <h3>All Users</h3>
+                                <div class="card-actions">
+                                    <button class="refresh-btn" onclick="loadUsersList()"><i class="fas fa-sync"></i> Refresh</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="data-table" id="usersTable">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>First Name</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usersTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+         </main>
+     </div>
 
     <div class="modal" id="bookingModal">
         <div class="modal-content">
@@ -898,8 +1097,45 @@
                 </div>
                 <button type="submit" class="confirm-booking-btn">Confirm Booking</button>
             </form>
-                        </div>
-                    </div>
+        </div>
+    </div>
+
+    <!-- View User Modal (Popup Alert) -->
+    <div class="modal" id="viewUserModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeViewUserModal()">&times;</span>
+            <h2><i class="fas fa-user"></i> User Details</h2>
+            <div class="user-details-popup">
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-id-badge"></i> User ID:</span>
+                    <span class="user-detail-value" id="viewUserId">-</span>
+                </div>
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-user"></i> First Name:</span>
+                    <span class="user-detail-value" id="viewUserFirstName">-</span>
+                </div>
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-envelope"></i> Email:</span>
+                    <span class="user-detail-value" id="viewUserEmail">-</span>
+                </div>
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-user-tag"></i> Role:</span>
+                    <span class="user-detail-value" id="viewUserRole">-</span>
+                </div>
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-calendar-plus"></i> Created:</span>
+                    <span class="user-detail-value" id="viewUserCreatedAt">-</span>
+                </div>
+                <div class="user-detail-row">
+                    <span class="user-detail-label"><i class="fas fa-key"></i> Password:</span>
+                    <span class="user-detail-value" id="viewUserPassword">••••••••</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="submit-btn" onclick="closeViewUserModal()">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
